@@ -26,4 +26,4 @@ Please ensure that you are running the latest version of the API on any producti
 
 ## Reporting a Vulnerability
 
-If the event that you've found a vulnerabilty that is unpatched in a supported framework build, you can join our [Discord](https://gameservershub.com/forums/pages/discord/) server to report the issue directly, or you can report it as an [Issue directly on GitHub](../../issues).
+If the event that you've found a vulnerabilty that is unpatched in a supported framework build, you can join our [Discord](https://discord.gg/2uRNp99M9r) server to report the issue directly, or you can report it as an [Issue directly on GitHub](../../issues).

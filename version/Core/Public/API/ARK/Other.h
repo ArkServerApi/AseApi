@@ -606,3 +606,54 @@ struct __declspec(align(8)) FHordeCrateDifficultyLevel
 {
 	int& DifficultyLevelField() { return *GetNativePointerField<int*>(this, "FHordeCrateDifficultyLevel.DifficultyLevel"); }
 };
+
+
+struct FActiveEventUndeprecatedStructures
+{
+	//FName ActiveEvent;
+	FName& ActiveEventField() { return *GetNativePointerField<FName*>(this, "FActiveEventUndeprecatedStructures.ActiveEvent"); }
+	//TArray<TSubclassOf<APrimalStructure>,FDefaultAllocator> UndeprecatedStructuresDuringEvent;
+	TArray<TSubclassOf<APrimalStructure>>& UndeprecatedStructuresDuringEventField() { return *GetNativePointerField<TArray<TSubclassOf<APrimalStructure>>*>(this, "FActiveEventUndeprecatedStructures.UndeprecatedStructuresDuringEvent"); };
+};
+
+struct FActiveEventUndeprecatedItems
+{
+	//FName ActiveEvent;
+	FName& ActiveEventField() { return *GetNativePointerField<FName*>(this, "FActiveEventUndeprecatedItems.ActiveEvent"); }
+	//TArray<TSubclassOf<UPrimalItem>,FDefaultAllocator> UndeprecatedItemsDuringEvent;
+	TArray<TSubclassOf<UPrimalItem>>& UndeprecatedItemsDuringEventField() { return *GetNativePointerField<TArray<TSubclassOf<UPrimalItem>>*>(this, "FActiveEventUndeprecatedItems.UndeprecatedItemsDuringEvent"); };
+};
+
+struct FActiveEventUndeprecatedDinos
+{
+	//FName ActiveEvent;
+	FName& ActiveEventField() { return *GetNativePointerField<FName*>(this, "FActiveEventUndeprecatedDinos.ActiveEvent"); }
+	//TArray<TSubclassOf<APrimalDinoCharacter>,FDefaultAllocator> UndeprecatedDinosDuringEvent;
+	TArray<TSubclassOf<APrimalDinoCharacter>>& UndeprecatedDinosDuringEventField() { return *GetNativePointerField<TArray<TSubclassOf<APrimalDinoCharacter>>*>(this, "FActiveEventUndeprecatedDinos.UndeprecatedDinosDuringEvent"); };
+};
+
+struct FActiveEventGlobalStatusAdjustments
+{
+	//FName ActiveEvent;
+	FName& ActiveEventField() { return *GetNativePointerField<FName*>( this, "FActiveEventGlobalStatusAdjustments.ActiveEvent"); }
+	//float GlobalStatusAdjustmentRateMultipliersPositive[12];
+	FieldArray<float, 12> GlobalStatusAdjustmentRateMultipliersPositiveField() { return { this, "FActiveEventGlobalStatusAdjustments.GlobalStatusAdjustmentRateMultipliersPositive" }; };
+	//float GlobalStatusAdjustmentRateMultipliersNegative[12];
+	FieldArray<float, 12> GlobalStatusAdjustmentRateMultipliersNegativeField() { return { this, "FActiveEventGlobalStatusAdjustments.GlobalStatusAdjustmentRateMultipliersNegative" }; };
+};
+
+struct UPrimalWorldSettingsEventOverrides : UObject
+{
+	//TArray<FClassRemappingWeight> NPCRandomSpawnClassWeights;
+	TArray<FClassRemappingWeight>& NPCRandomSpawnClassWeightsField() { return *GetNativePointerField<TArray<FClassRemappingWeight>*>(this, "UPrimalWorldSettingsEventOverrides.NPCRandomSpawnClassWeights"); };
+	//TArray<FClassRemappingWeight> SinglePlayerNPCRandomSpawnClassWeights;
+	TArray<FClassRemappingWeight>& SinglePlayerNPCRandomSpawnClassWeightsField() { return *GetNativePointerField<TArray<FClassRemappingWeight>*>(this, "UPrimalWorldSettingsEventOverrides.SinglePlayerNPCRandomSpawnClassWeights"); };
+	//TArray<FActiveEventUndeprecatedStructures> UndeprecatedStructuresDuringEvent;
+	TArray<FActiveEventUndeprecatedStructures>& UndeprecatedStructuresDuringEventField() { return *GetNativePointerField<TArray<FActiveEventUndeprecatedStructures>*>(this, "UPrimalWorldSettingsEventOverrides.UndeprecatedStructuresDuringEvent"); };
+	//TArray<FActiveEventUndeprecatedItems> UndeprecatedItemsDuringEvent;
+	TArray<FActiveEventUndeprecatedItems>& UndeprecatedItemsDuringEventField() { return *GetNativePointerField<TArray<FActiveEventUndeprecatedItems>*>(this, "UPrimalWorldSettingsEventOverrides.UndeprecatedItemsDuringEvent"); };
+	//TArray<FActiveEventUndeprecatedDinos> UndeprecatedDinosDuringEvent;
+	TArray<FActiveEventUndeprecatedDinos>& UndeprecatedDinosDuringEventField() { return *GetNativePointerField<TArray<FActiveEventUndeprecatedDinos>*>(this, "UPrimalWorldSettingsEventOverrides.UndeprecatedDinosDuringEvent"); };
+	//TArray<FActiveEventGlobalStatusAdjustments> AdditionalGlobalStatusAdjustmentsDuringEvent;
+	TArray<FActiveEventGlobalStatusAdjustments>& AdditionalGlobalStatusAdjustmentsDuringEventField() { return *GetNativePointerField<TArray<FActiveEventGlobalStatusAdjustments>*>(this, "UPrimalWorldSettingsEventOverrides.AdditionalGlobalStatusAdjustmentsDuringEvent"); };
+};

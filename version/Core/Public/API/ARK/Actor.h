@@ -8503,6 +8503,24 @@ struct APrimalWorldSettings : AWorldSettings
 	float& LongitudeOriginField() { return *GetNativePointerField<float*>(this, "APrimalWorldSettings.LongitudeOrigin"); }
 	float& LatitudeOriginField() { return *GetNativePointerField<float*>(this, "APrimalWorldSettings.LatitudeOrigin"); }
 	TMap<unsigned int, AActor*>& StructureIDMapField() { return *GetNativePointerField <TMap<unsigned int, AActor*>*>(this, "APrimalWorldSettings.StructureIDMap"); }
+
+	// Functions
+
+	/*
+	void __fastcall APrimalWorldSettings::PreGameplaySetup(
+		APrimalWorldSettings *this)
+	*/
+	void PreGameplaySetup() { return NativeCall<void>(this, "APrimalWorldSettings.PreGameplaySetup"); }
+
+	/*
+	UClass* __fastcall APrimalWorldSettings::GetNPCRandomSpawnClass(
+		APrimalWorldSettings* this,
+		const TArray<FClassNameReplacement, FDefaultAllocator>* ClassNameReplacements,
+		const TArray<FClassRemappingWeight, FDefaultAllocator>* TheNPCRandomSpawnClassWeights,
+		UClass* forClass,
+		bool bIgnoreNPCRandomClassReplacements );
+	*/
+	UClass * GetNPCRandomSpawnClass(const TArray<FClassNameReplacement> * ClassNameReplacements, const TArray<FClassRemappingWeight> * TheNPCRandomSpawnClassWeights, UClass * forClass, bool bIgnoreNPCRandomClassReplacements) { return NativeCall<UClass *, const TArray<FClassNameReplacement> *, const TArray<FClassRemappingWeight> *, UClass *, bool>(this, "APrimalWorldSettings.GetNPCRandomSpawnClass", ClassNameReplacements, TheNPCRandomSpawnClassWeights, forClass, bIgnoreNPCRandomClassReplacements); }
 };
 
 struct ANPCZoneManager

@@ -3,6 +3,95 @@
 enum EFullyLoadPackageType;
 enum ExpensiveFunctionRegister;
 
+// Missing enum declarations for Atlas compilation
+enum class EIndirectLightingCacheQuality
+{
+	ILCQ_Off = 0x0,
+	ILCQ_Point = 0x1,
+	ILCQ_Volume = 0x2,
+};
+
+enum class ECanBeCharacterBase
+{
+	ECB_No = 0x0,
+	ECB_Yes = 0x1,
+	ECB_Owner = 0x2,
+	ECB_MAX = 0x3,
+};
+
+enum class EDistanceFieldTwoSidedOverride
+{
+	DFTSO_NotOverriden = 0x0,
+	DFTSO_OverrideTrue = 0x1,
+	DFTSO_OverrideFalse = 0x2,
+	DFTSO_Max = 0x3,
+};
+
+enum class ENetRole
+{
+	ROLE_None = 0x0,
+	ROLE_SimulatedProxy = 0x1,
+	ROLE_AutonomousProxy = 0x2,
+	ROLE_Authority = 0x3,
+	ROLE_MAX = 0x4,
+};
+
+enum class ENetDormancy
+{
+	DORM_Never = 0x0,
+	DORM_Awake = 0x1,
+	DORM_DormantAll = 0x2,
+	DORM_DormantPartial = 0x3,
+	DORM_Initial = 0x4,
+	DORN_MAX = 0x5,
+};
+
+enum class EDetailMode
+{
+	DM_Low = 0x0,
+	DM_Medium = 0x1,
+	DM_High = 0x2,
+	DM_MAX = 0x3,
+};
+
+enum class ESceneDepthPriorityGroup
+{
+	SDPG_World = 0x0,
+	SDPG_Foreground = 0x1,
+	SDPG_MAX = 0x2,
+};
+
+enum class ETransitionType
+{
+	TT_None = 0x0,
+	TT_Paused = 0x1,
+	TT_Loading = 0x2,
+	TT_Saving = 0x3,
+	TT_Connecting = 0x4,
+	TT_Precaching = 0x5,
+	TT_WaitingToConnect = 0x6,
+	TT_MAX = 0x7,
+};
+
+// Atlas-specific enums
+enum EFastTravelType
+{
+	FTT_None = 0x0,
+	FTT_Bed = 0x1,
+	FTT_FastTravel = 0x2,
+	FTT_Spawn = 0x3,
+	FTT_MAX = 0x4,
+};
+
+enum AtlasVoiceChannelType
+{
+	AVCT_Global = 0x0,
+	AVCT_Local = 0x1,
+	AVCT_Team = 0x2,
+	AVCT_Alliance = 0x3,
+	AVCT_MAX = 0x4,
+};
+
 namespace EInventoryDataListType
 {
 	enum Type

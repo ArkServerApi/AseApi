@@ -1367,6 +1367,27 @@ struct AInfo : AActor
 	static UClass* StaticClass() { return NativeCall<UClass*>(nullptr, "AInfo.StaticClass"); }
 };
 
+struct AWorldSettings : AInfo
+{
+};
+
+struct APrimalWorldSettings : AWorldSettings
+{
+	// Functions
+	__int64 GetIslandIndexAtLocation(
+		const FVector* AtLocation,
+		float AllowedDistanceFromShore,
+		bool bAllowWithoutIslandPoints,
+		bool bIgnoreControlPoint) {
+		return NativeCall<__int64, APrimalWorldSettings*, const FVector*, float, bool, bool>(this, "APrimalWorldSettings.GetIslandIndexAtLocation", this, AtLocation, AllowedDistanceFromShore, bAllowWithoutIslandPoints, bIgnoreControlPoint);
+	}
+	
+	float TakeDamage(float Damage, FDamageEvent* DamageEvent, AController* EventInstigator, AActor* DamageCauser) { 
+		return NativeCall<float, float, FDamageEvent*, AController*, AActor*>(this, "APawn.TakeDamage", Damage, DamageEvent, EventInstigator, DamageCauser);
+	}
+
+};
+
 struct APawn : AActor
 {
 	float& BaseEyeHeightField() { return *GetNativePointerField<float*>(this, "APawn.BaseEyeHeight"); }
@@ -9556,8 +9577,21 @@ struct  FAttachedInstanced
 	FAttachedInstancedVtbl* vfptr;
 };
 
+struct FOctreeElementId 
+{                                     
+	 const void* Node;
+    int ElementIndex;
+};
 
-struct FAttachedInstancedHarvestingElement
+struct  FOctreeElementSimple
+{                                      
+	FBoxSphereBounds OctreeBounds;
+	FOctreeElementId OctreeId;
+	unsigned int OctreeMask;
+
+};
+
+struct FAttachedInstancedHarvestingElement : FAttachedInstanced, FOctreeElementSimple
 {
 	UMeshComponent* BaseMeshComponent;
 	int OriginalIndexIntoBase;
@@ -9591,7 +9625,8 @@ struct  UInstancedStaticMeshComponent : UStaticMeshComponent
 	static UClass* GetPrivateStaticClass(const wchar_t* Package) { return NativeCall<UClass*, const wchar_t*>(nullptr, "UInstancedStaticMeshComponent.GetPrivateStaticClass", Package); }
 	__int64 GetInstanceCount() { return NativeCall<__int64>(this, "UInstancedStaticMeshComponent.GetInstanceCount"); }
 	FVector* GetPositionOfInstance(FVector *result, int index) { return NativeCall<FVector*, FVector*, int>(this, "UInstancedStaticMeshComponent.GetPositionOfInstance", result, index); }
-
+	void RegisterAddedInstance() { { NativeCall<void>(this, "UInstancedStaticMeshComponent.ConstructAttachedComponent"); } }
+	void ConstructAttachedComponent(int index) { NativeCall<void, int>(this, "UInstancedStaticMeshComponent.ConstructAttachedComponent", index); }
 	int& InstancingRandomSeedField() { return *GetNativePointerField<  int*>(this, "UInstancedStaticMeshComponent.InstancingRandomSeed"); }
 	int& InstanceStartCullDistanceField() { return *GetNativePointerField<  int*>(this, "UInstancedStaticMeshComponent.InstanceStartCullDistance"); }
 	int& InstanceEndCullDistanceField() { return *GetNativePointerField<  int*>(this, "UInstancedStaticMeshComponent.InstanceEndCullDistance"); }
@@ -9791,10 +9826,12 @@ struct FFoliageAttachmentOverride
 struct  AFoliageAttachmentOverrideVolume : AInfo
 {
 	void BeginPlay(float a2) { return NativeCall<void, float>(this, "AFoliageAttachmentOverrideVolume.BeginPlay", a2); }
+	void ExportToCSV() { return NativeCall<void>(this, "AFoliageAttachmentOverrideVolume.ExportToCSV"); }
 	TArray<FFoliageAttachmentOverride, FDefaultAllocator>& FoliageAttachmentOverrides() { return *GetNativePointerField<TArray<FFoliageAttachmentOverride, FDefaultAllocator>*>(this, "AFoliageAttachmentOverrideVolume.FoliageAttachmentOverrides"); }
 	TMap<FName, TSubclassOf<UActorComponent>, FDefaultSetAllocator, TDefaultMapKeyFuncs<FName, TSubclassOf<UActorComponent>, 0> > & FoliageOverrideMap() { return *GetNativePointerField< TMap<FName, TSubclassOf<UActorComponent>, FDefaultSetAllocator, TDefaultMapKeyFuncs<FName, TSubclassOf<UActorComponent>, 0> >*>(this, "AFoliageAttachmentOverrideVolume.FoliageOverrideMap"); }
 	unsigned __int32& bAddedToArrayField() { return *GetNativePointerField<unsigned __int32*>(this, "AFoliageAttachmentOverrideVolume.bAddedToArray"); }
 	unsigned __int32& bExportToCSVField() { return *GetNativePointerField<unsigned __int32*>(this, "AFoliageAttachmentOverrideVolume.bExportToCSV"); }
+	static TSubclassOf<UActorComponent>* GetOverridenFoliageAttachment(TSubclassOf<UActorComponent>* result, ULevel* TheLevel, UFoliageType* FoliageTypeReference) { return NativeCall<TSubclassOf<UActorComponent>*, TSubclassOf<UActorComponent>*, ULevel*, UFoliageType*>(nullptr, "AFoliageAttachmentOverrideVolume.GetOverridenFoliageAttachment", result, TheLevel, FoliageTypeReference); }
 };
 
 struct APrimalStructureItemContainer_SupplyCrate

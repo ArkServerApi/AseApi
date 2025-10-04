@@ -69,6 +69,8 @@ struct  FSeamlessIslandInfo
 	float& RotationField() { return *GetNativePointerField<	float*>(this, "FSeamlessIslandInfo.Rotation"); }
 	int& IslandPointsField() { return *GetNativePointerField<	int*>(this, "FSeamlessIslandInfo.IslandPoints"); }
 	FIslandInfoGameplayValues& ReplicatedGameplayValuesField() { return *GetNativePointerField<	FIslandInfoGameplayValues*>(this, "FSeamlessIslandInfo.ReplicatedGameplayValues"); }
+
+	TWeakObjectPtr<APrimalStructureClaimFlag>& IslandSettlementFlagField() { return *GetNativePointerField<TWeakObjectPtr<APrimalStructureClaimFlag>*>(this, "FSeamlessIslandInfo.IslandSettlementFlag"); }
 };
 
 struct FSeamlessServerInfo
@@ -246,6 +248,12 @@ struct UPubSub_GeneralNotifications_Redis : UPubSub_GeneralNotifications, FDatab
 
 struct UShooterGameInstance : UGameInstance
 {
+	
+	
+	TMap<FString, TWeakObjectPtr<UClass>, FDefaultSetAllocator, TDefaultMapKeyFuncs<FString, TWeakObjectPtr<UClass>, 0> >& HarvestOverridesClassesCacheField() {
+		return *GetNativePointerField<TMap<FString, TWeakObjectPtr<UClass>, FDefaultSetAllocator, TDefaultMapKeyFuncs<FString, TWeakObjectPtr<UClass>, 0> >*>(this, "UShooterGameInstance.HarvestOverridesClassesCache");
+	}
+
 	FName& CurrentStateField() { return *GetNativePointerField<FName*>(this, "UShooterGameInstance.CurrentState"); }
 	bool& bCanUseUserGeneratedContentField() { return *GetNativePointerField<bool*>(this, "UShooterGameInstance.bCanUseUserGeneratedContent"); }
 	bool& bHasCommunicationPriviligeField() { return *GetNativePointerField<bool*>(this, "UShooterGameInstance.bHasCommunicationPrivilige"); }
@@ -399,6 +407,8 @@ struct UWorld : UObject
 	struct InitializationValues
 	{
 	};
+
+	
 	TArray<TSubclassOf<AActor>>& ActorsClassesAllowedToSaveField() { return *GetNativePointerField<TArray<TSubclassOf<AActor>>*>(this, "UWorld.ActorsClassesAllowedToSave"); }
 	bool& bIsIdleField() { return *GetNativePointerField<bool*>(this, "UWorld.bIsIdle"); }
 	bool& bEverHadGameStateField() { return *GetNativePointerField<bool*>(this, "UWorld.bEverHadGameState"); }
@@ -909,6 +919,8 @@ struct ULevelBase : UObject
 
 struct ULevel : ULevelBase
 {
+	int& SubLevelGroupUniqueIDField() { return *GetNativePointerField<int*>(this, "ULevel.SubLevelGroupUniqueID"); }
+	__int64 GetSublevelGroupUniqueID() { return NativeCall<__int64>(this, "ULevel.GetSublevelGroupUniqueID"); }
 };
 
 struct AGameMode : AInfo

@@ -1164,6 +1164,209 @@ struct APrimalStructureItemContainer : APrimalStructure
 	static void StaticRegisterNativesAPrimalStructureItemContainer() { NativeCall<void>(nullptr, "APrimalStructureItemContainer.StaticRegisterNativesAPrimalStructureItemContainer"); }
 };
 
+struct APrimalStructureClaimFlag : APrimalStructureItemContainer {
+	BitFieldValue<bool, unsigned __int32> bClaimed() { return { this, "APrimalStructureClaimFlag.bClaimed" }; }
+	BitFieldValue<bool, unsigned __int32> bIsShipClaim() { return { this, "APrimalStructureClaimFlag.bIsShipClaim" }; }
+	BitFieldValue<bool, unsigned __int32> bIsContested() { return { this, "APrimalStructureClaimFlag.bIsContested" }; }
+	BitFieldValue<bool, unsigned __int32> bIsUnclaiming() { return { this, "APrimalStructureClaimFlag.bIsUnclaiming" }; }
+	BitFieldValue<bool, unsigned __int32> bWantsToResume() { return { this, "APrimalStructureClaimFlag.bWantsToResume" }; }
+	BitFieldValue<bool, unsigned __int32> bIsStealing() { return { this, "APrimalStructureClaimFlag.bIsStealing" }; }
+	BitFieldValue<bool, unsigned __int32> bIsWaterClaim() { return { this, "APrimalStructureClaimFlag.bIsWaterClaim" }; }
+	BitFieldValue<bool, unsigned __int32> bIsIslandSettlementFlag() { return { this, "APrimalStructureClaimFlag.bIsIslandSettlementFlag" }; }
+	BitFieldValue<bool, unsigned __int32> bIsControlPointFlag() { return { this, "APrimalStructureClaimFlag.bIsControlPointFlag" }; }
+	float& ControlPointFlagPlacmentRadiusField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ControlPointFlagPlacmentRadius"); }
+
+	BitFieldValue<bool, unsigned __int32> bClaimFlagStealsEnemyStructures() { return { this, "APrimalStructureClaimFlag.bClaimFlagStealsEnemyStructures" }; }
+	BitFieldValue<bool, unsigned __int32> bHasMyTeamInRange() { return { this, "APrimalStructureClaimFlag.bHasMyTeamInRange" }; }
+	BitFieldValue<bool, unsigned __int32> bHasEnemyTeamInRange() { return { this, "APrimalStructureClaimFlag.bHasEnemyTeamInRange" }; }
+	BitFieldValue<bool, unsigned __int32> bHasTaxationContainer() { return { this, "APrimalStructureClaimFlag.bHasTaxationContainer" }; }
+	BitFieldValue<bool, unsigned __int32> bClaimDidStructureWipe() { return { this, "APrimalStructureClaimFlag.bClaimDidStructureWipe" }; }
+	float& ClaimProgressField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ClaimProgress"); }
+	long double& LastLandDeClaimTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastLandDeClaimTime"); }
+	long double& LastTimeTeamInRangeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastTimeTeamInRange"); }
+	long double& LastTimeEnemyTeamInRangeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastTimeEnemyTeamInRange"); }
+	long double& LastSettlementEnemyContestedTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastSettlementEnemyContestedTime"); }
+	long double& ClaimedAtTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.ClaimedAtTime"); }
+	float& IntervalToAllowStructureWipeOnFinishedClaimField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.IntervalToAllowStructureWipeOnFinishedClaim"); }
+	float& IntervalBeforeAllowStructureWipeOnFinishedClaimField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.IntervalBeforeAllowStructureWipeOnFinishedClaim"); }
+	int& SettlementStructureWipeGoldCostPVEField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.SettlementStructureWipeGoldCostPVE"); }
+	int& SettlementStructureWipeGoldCostPVPField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.SettlementStructureWipeGoldCostPVP"); }
+	long double& LastChangedTaxRateTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastChangedTaxRateTime"); }
+	long double& LastEnemyDeClaimTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastEnemyDeClaimTime"); }
+	int& SettlementAllowBuildingModeField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.SettlementAllowBuildingMode"); }
+	int& SettlementFlagCrewResourceUsageField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.SettlementFlagCrewResourceUsage"); }
+	FString& TribeMessageStringField() { return *GetNativePointerField<FString*>(this, "APrimalStructureClaimFlag.TribeMessageString"); }
+	FString& SettlementFlagNameField() { return *GetNativePointerField<FString*>(this, "APrimalStructureClaimFlag.SettlementFlagName"); }
+	float& TaxationRatePercentField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TaxationRatePercent"); }
+	float& TaxRateAllianceField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TaxRateAlliance"); }
+	TArray<unsigned __int64, FDefaultAllocator>& TaxRateOverrideTribeIdsField() { return *GetNativePointerField<TArray<unsigned __int64, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.TaxRateOverrideTribeIds"); }
+	TArray<float, FDefaultAllocator>& TaxRateOverridesField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.TaxRateOverrides"); }
+	int& SettlementIslandIdField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.SettlementIslandId"); }
+	float& MaxClaimTaxRateField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.MaxClaimTaxRate"); }
+	int& TerritoryMessageAllowanceIntervalField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.TerritoryMessageAllowanceInterval"); }
+	int& TribeMessageAllowanceIntervalField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.TribeMessageAllowanceInterval"); }
+	int& TribeMessageMaxSizeField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.TribeMessageMaxSize"); }
+	float& ExtraBonusClaimRateMultiplierField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ExtraBonusClaimRateMultiplier"); }
+	float& AdminBonusClaimRateMultiplierField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.AdminBonusClaimRateMultiplier"); }
+	long double& LastAdminForcedCombatPhaseTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastAdminForcedCombatPhaseTime"); }
+	bool& bAddedToForcedHUDField() { return *GetNativePointerField<bool*>(this, "APrimalStructureClaimFlag.bAddedToForcedHUD"); }
+	float& ResourceConsumptionIntervalBaseField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ResourceConsumptionIntervalBase"); }
+	TArray<float, FDefaultAllocator>& ResourceConsumptionSettlerTeamAdditionalIntervalsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ResourceConsumptionSettlerTeamAdditionalIntervals"); }
+	TArray<float, FDefaultAllocator>& ResourceConsumptionSettlerTeamCountsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ResourceConsumptionSettlerTeamCounts"); }
+	int& CurrentNumSettlerTeamsField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.CurrentNumSettlerTeams"); }
+	long double& NextResourceConsumptionTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.NextResourceConsumptionTime"); }
+	bool& bHasInsufficientResourcesField() { return *GetNativePointerField<bool*>(this, "APrimalStructureClaimFlag.bHasInsufficientResources"); }
+	bool& bCheckedResourcesField() { return *GetNativePointerField<bool*>(this, "APrimalStructureClaimFlag.bCheckedResources"); }
+	long double& LastSetTribeMessageTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastSetTribeMessageTime"); }
+	long double& LastSignNamingTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastSignNamingTime"); }
+	long double& LastSetTerritoryAllowanceValuesTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastSetTerritoryAllowanceValuesTime"); }
+	APrimalStructureItemContainer*& TaxationContainerField() { return *GetNativePointerField<APrimalStructureItemContainer**>(this, "APrimalStructureClaimFlag.TaxationContainer"); }
+	float& TaxDepositIntervalMinField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TaxDepositIntervalMin"); }
+	float& TaxDepositIntervalMaxField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TaxDepositIntervalMax"); }
+	float& ActiveLandClaimTimeField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ActiveLandClaimTime"); }
+	float& LandClaimTimeField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.LandClaimTime"); }
+	float& LandUnclaimTimeField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.LandUnclaimTime"); }
+	float& LandClaimRadiusField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.LandClaimRadius"); }
+	float& ResetDeClaimGracePeriodField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ResetDeClaimGracePeriod"); }
+	UTexture2D*& ContestedIconField() { return *GetNativePointerField<UTexture2D**>(this, "APrimalStructureClaimFlag.ContestedIcon"); }
+	UTexture2D*& ClaimingIconField() { return *GetNativePointerField<UTexture2D**>(this, "APrimalStructureClaimFlag.ClaimingIcon"); }
+	UTexture2D*& ClaimedEnemyIconField() { return *GetNativePointerField<UTexture2D**>(this, "APrimalStructureClaimFlag.ClaimedEnemyIcon"); }
+	UTexture2D*& ClaimedAllyIconField() { return *GetNativePointerField<UTexture2D**>(this, "APrimalStructureClaimFlag.ClaimedAllyIcon"); }
+	UTexture2D*& UnclaimingIconField() { return *GetNativePointerField<UTexture2D**>(this, "APrimalStructureClaimFlag.UnclaimingIcon"); }
+	float& ClaimingBroadcastIntervalField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ClaimingBroadcastInterval"); }
+	float& TeamInRangeUnclaimGracePeriodField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TeamInRangeUnclaimGracePeriod"); }
+	float& EnemyTeamInRangeUnclaimGracePeriodField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.EnemyTeamInRangeUnclaimGracePeriod"); }
+	float& TeamLandFlagMinimumDistanceIntervalField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.TeamLandFlagMinimumDistanceInterval"); }
+	FVector& IconFloatingHudLocTextOffsetField() { return *GetNativePointerField<FVector*>(this, "APrimalStructureClaimFlag.IconFloatingHudLocTextOffset"); }
+	float& AbsoluteMaxSearchRadiusField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.AbsoluteMaxSearchRadius"); }
+	float& BonusClaimRateMultiplierField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.BonusClaimRateMultiplier"); }
+	BitFieldValue<bool, unsigned __int32> bDepositTimerSet() { return { this, "APrimalStructureClaimFlag.bDepositTimerSet" }; }
+	BitFieldValue<bool, unsigned __int32> bSonarEnabled() { return { this, "APrimalStructureClaimFlag.bSonarEnabled" }; }
+	long double& LastClaimingBroadcastTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastClaimingBroadcastTime"); }
+	int& LastLandDeClaimFrameField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.LastLandDeClaimFrame"); }
+	bool& bAddedToArrayField() { return *GetNativePointerField<bool*>(this, "APrimalStructureClaimFlag.bAddedToArray"); }
+	TArray<float, FDefaultAllocator>& DeclaimTimesTotalClaimFlagsInputsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.DeclaimTimesTotalClaimFlagsInputs"); }
+	TArray<float, FDefaultAllocator>& DeclaimTimesTimeOutputsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.DeclaimTimesTimeOutputs"); }
+	TArray<float, FDefaultAllocator>& PvEAllowedDeclaimIntervalTotalClaimFlagsInputsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.PvEAllowedDeclaimIntervalTotalClaimFlagsInputs"); }
+	TArray<float, FDefaultAllocator>& PvEAllowedDeclaimIntervalTimeOutputsField() { return *GetNativePointerField<TArray<float, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.PvEAllowedDeclaimIntervalTimeOutputs"); }
+	long double& LastOverridenTribeMessageStringTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastOverridenTribeMessageStringTime"); }
+	TArray<UMaterialInterface*, FDefaultAllocator>& ClaimedMaterialsField() { return *GetNativePointerField<TArray<UMaterialInterface*, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ClaimedMaterials"); }
+	float& ClaimRateTempBoost_MultField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ClaimRateTempBoost_Mult"); }
+	float& ClaimRateTempBoost_DurationField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.ClaimRateTempBoost_Duration"); }
+	long double& LastClaimRateTempBoostStartTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastClaimRateTempBoostStartTime"); }
+	unsigned int& TotalClaimFlagsField() { return *GetNativePointerField<unsigned int*>(this, "APrimalStructureClaimFlag.TotalClaimFlags"); }
+	TArray<int, FDefaultAllocator>& BuildAllowanceListIDsField() { return *GetNativePointerField<TArray<int, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.BuildAllowanceListIDs"); }
+	int& TerritoryBuildAllowanceField() { return *GetNativePointerField<int*>(this, "APrimalStructureClaimFlag.TerritoryBuildAllowance"); }
+	float& SonarTimeDurationField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.SonarTimeDuration"); }
+	__int64& OriginalPlacerPlayerIDField() { return *GetNativePointerField<__int64*>(this, "APrimalStructureClaimFlag.OriginalPlacerPlayerID"); }
+	TSet<unsigned __int64, DefaultKeyFuncs<unsigned __int64, 0>, FDefaultSetAllocator>& TaggedSettlerPlayerDataIDsField() { return *GetNativePointerField<TSet<unsigned __int64, DefaultKeyFuncs<unsigned __int64, 0>, FDefaultSetAllocator>*>(this, "APrimalStructureClaimFlag.TaggedSettlerPlayerDataIDs"); }
+	TSet<int, DefaultKeyFuncs<int, 0>, FDefaultSetAllocator>& TaggedSettlerTeamsField() { return *GetNativePointerField<TSet<int, DefaultKeyFuncs<int, 0>, FDefaultSetAllocator>*>(this, "APrimalStructureClaimFlag.TaggedSettlerTeams"); }
+	TSet<int, DefaultKeyFuncs<int, 0>, FDefaultSetAllocator>& PreviousTaggedSettlerTeamsField() { return *GetNativePointerField<TSet<int, DefaultKeyFuncs<int, 0>, FDefaultSetAllocator>*>(this, "APrimalStructureClaimFlag.PreviousTaggedSettlerTeams"); }
+	TArray<unsigned __int64, FDefaultAllocator>& ArrayTaggedSettlerPlayerDataIDsField() { return *GetNativePointerField<TArray<unsigned __int64, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ArrayTaggedSettlerPlayerDataIDs"); }
+	TArray<int, FDefaultAllocator>& ArrayTaggedSettlerTeamsField() { return *GetNativePointerField<TArray<int, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ArrayTaggedSettlerTeams"); }
+	TArray<int, FDefaultAllocator>& ArrayPreviousTaggedSettlerTeamsField() { return *GetNativePointerField<TArray<int, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.ArrayPreviousTaggedSettlerTeams"); }
+	long double& NextUpdateSettlerCountsTimeField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.NextUpdateSettlerCountsTime"); }
+	bool& bIsBeingReplacedField() { return *GetNativePointerField<bool*>(this, "APrimalStructureClaimFlag.bIsBeingReplaced"); }
+	float& SettlerCountRefreshIntervalField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.SettlerCountRefreshInterval"); }
+	TArray<FVector, FDefaultAllocator>& SonarPositionsField() { return *GetNativePointerField<TArray<FVector, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.SonarPositions"); }
+	long double& LastTimeUsedSonarField() { return *GetNativePointerField<long double*>(this, "APrimalStructureClaimFlag.LastTimeUsedSonar"); }
+	float& SonarCooldownField() { return *GetNativePointerField<float*>(this, "APrimalStructureClaimFlag.SonarCooldown"); }
+	UTexture*& SonarTextureField() { return *GetNativePointerField<UTexture**>(this, "APrimalStructureClaimFlag.SonarTexture"); }
+
+
+	void SetClaimFlag(APrimalStructureClaimFlag* InClaimFlag) { NativeCall<void, APrimalStructureClaimFlag*>(this, "APrimalStructureClaimFlag.SetClaimFlag", InClaimFlag); }
+	bool GetCompactRelativeLoc(APrimalStructureClaimFlag* Flag, unsigned __int16* RelX, unsigned __int16* RelY) { return NativeCall<bool, APrimalStructureClaimFlag*, unsigned __int16*, unsigned __int16*>(this, "APrimalStructureClaimFlag.GetCompactRelativeLoc", Flag, RelX, RelY); }
+	void AddClaimFlag(APrimalStructureClaimFlag* Flag, unsigned __int64 TribeOrOwnerId) { NativeCall<void, APrimalStructureClaimFlag*, unsigned __int64>(this, "APrimalStructureClaimFlag.AddClaimFlag", Flag, TribeOrOwnerId); }
+	void ChangeClaimFlag(APrimalStructureClaimFlag* Flag, unsigned __int64 OLDTribeOrOwnerId, unsigned __int64 NEWTribeOrOwnerId) { NativeCall<void, APrimalStructureClaimFlag*, unsigned __int64, unsigned __int64>(this, "APrimalStructureClaimFlag.ChangeClaimFlag", Flag, OLDTribeOrOwnerId, NEWTribeOrOwnerId); }
+	void RemoveClaimFlag(APrimalStructureClaimFlag* Flag) { NativeCall<void, APrimalStructureClaimFlag*>(this, "APrimalStructureClaimFlag.RemoveClaimFlag", Flag); }
+	void UpdateInLandClaimedFlagRange(APrimalStructureClaimFlag* ToIgnore) { NativeCall<void, APrimalStructureClaimFlag*>(this, "APrimalStructureClaimFlag.UpdateInLandClaimedFlagRange", ToIgnore); }
+	bool AllowNeutralOrAllyPlacement(AShooterPlayerController* ForPlayer) { return NativeCall<bool, AShooterPlayerController*>(this, "APrimalStructureClaimFlag.AllowNeutralOrAllyPlacement", ForPlayer); }
+	bool AllowNeutralOrAllyPlacementTeam(int OtherTeam) { return NativeCall<bool, int>(this, "APrimalStructureClaimFlag.AllowNeutralOrAllyPlacementTeam", OtherTeam); }
+	static void ApplyClaimTax(UWorld* ForWorld, AActor* InstigatorActor, int InstigatorTeam, UPrimalItem* FromItem, const FVector* AtLocation) { NativeCall<void, UWorld*, AActor*, int, UPrimalItem*, const FVector*>(nullptr, "APrimalStructureClaimFlag.ApplyClaimTax", ForWorld, InstigatorActor, InstigatorTeam, FromItem, AtLocation); }
+	static void ApplyClaimTaxArray(UWorld* ForWorld, AActor* InstigatorActor, int InstigatorTeam, const FVector* AtLocation, TArray<UPrimalItem*, FDefaultAllocator>* ItemsArray) { NativeCall<void, UWorld*, AActor*, int, const FVector*, TArray<UPrimalItem*, FDefaultAllocator>*>(nullptr, "APrimalStructureClaimFlag.ApplyClaimTaxArray", ForWorld, InstigatorActor, InstigatorTeam, AtLocation, ItemsArray); }
+	static __int64 ApplyClaimTaxClass(UWorld* ForWorld, AActor* InstigatorActor, int InstigatorTeam, TSubclassOf<UPrimalItem> ItemClass, int ItemQuantity, const FVector* AtLocation) { return NativeCall<__int64, UWorld*, AActor*, int, TSubclassOf<UPrimalItem>, int, const FVector*>(nullptr, "APrimalStructureClaimFlag.ApplyClaimTaxClass", ForWorld, InstigatorActor, InstigatorTeam, ItemClass, ItemQuantity, AtLocation); }
+	int BPIsAllowedToBuildEx_Implementation(FPlacementData* OutPlacementData, int CurrentAllowedReason, APlayerController* PC, bool bFinalPlacement) { return NativeCall<int, FPlacementData*, int, APlayerController*, bool>(this, "APrimalStructureClaimFlag.BPIsAllowedToBuildEx_Implementation", OutPlacementData, CurrentAllowedReason, PC, bFinalPlacement); }
+	FString* BPOverrideCantBuildReasonString_Implementation(FString* result, int CantBuildReason) { return NativeCall<FString*, FString*, int>(this, "APrimalStructureClaimFlag.BPOverrideCantBuildReasonString_Implementation", result, CantBuildReason); }
+	void BeginPlay() { NativeCall<void>(this, "APrimalStructureClaimFlag.BeginPlay"); }
+	void BoostClaimSpeedForTime(float boostMult, float boostDuration) { NativeCall<void, float, float>(this, "APrimalStructureClaimFlag.BoostClaimSpeedForTime", boostMult, boostDuration); }
+
+	void ChangeActorTeam(int NewTeam) { NativeCall<void, int>(this, "APrimalStructureClaimFlag.ChangeActorTeam", NewTeam); }
+	bool CheckConsumeResources(UPrimalInventoryComponent* InvComp, FSeamlessIslandInfo* TheIslandInfo) { return NativeCall<bool, UPrimalInventoryComponent*, FSeamlessIslandInfo*>(this, "APrimalStructureClaimFlag.CheckConsumeResources", InvComp, TheIslandInfo); }
+	void ClientMultiUse(APlayerController* ForPC, int UseIndex) { NativeCall<void, APlayerController*, int>(this, "APrimalStructureClaimFlag.ClientMultiUse", ForPC, UseIndex); }
+	void Demolish(APlayerController* ForPC) { NativeCall<void, APlayerController*>(this, "APrimalStructureClaimFlag.Demolish", ForPC); }
+	void DepositTaxItems() { NativeCall<void>(this, "APrimalStructureClaimFlag.DepositTaxItems"); }
+	void Destroyed() { NativeCall<void>(this, "APrimalStructureClaimFlag.Destroyed"); }
+	void DisableSonar() { NativeCall<void>(this, "APrimalStructureClaimFlag.DisableSonar"); }
+	void DoSettlementStructureWipe() { NativeCall<void>(this, "APrimalStructureClaimFlag.DoSettlementStructureWipe"); }
+	void DrawFloatingHUD(AShooterHUD* HUD) { NativeCall<void, AShooterHUD*>(this, "APrimalStructureClaimFlag.DrawFloatingHUD", HUD); }
+	void DrawHUD(AShooterHUD* HUD) { NativeCall<void, AShooterHUD*>(this, "APrimalStructureClaimFlag.DrawHUD", HUD); }
+	void DrawPlacementHUD_Implementation(AHUD* HUD) { NativeCall<void, AHUD*>(this, "APrimalStructureClaimFlag.DrawPlacementHUD_Implementation", HUD); }
+	void EnableSonarForTime(APlayerController* ForPC, float SonarTime, bool bShowSleepingPlayers) { NativeCall<void, APlayerController*, float, bool>(this, "APrimalStructureClaimFlag.EnableSonarForTime", ForPC, SonarTime, bShowSleepingPlayers); }
+	bool FinalStructurePlacement(APlayerController* PC, FVector AtLocation, FRotator AtRotation, FRotator PlayerViewRotation, APawn* AttachToPawn, APrimalStructure* ParentStructure, FName BoneName, bool bIsFlipped, UClass** ClassOverride) { return NativeCall<bool, APlayerController*, FVector, FRotator, FRotator, APawn*, APrimalStructure*, FName, bool, UClass**>(this, "APrimalStructureClaimFlag.FinalStructurePlacement", PC, AtLocation, AtRotation, PlayerViewRotation, AttachToPawn, ParentStructure, BoneName, bIsFlipped, ClassOverride); }
+	void FinishClaim() { NativeCall<void>(this, "APrimalStructureClaimFlag.FinishClaim"); }
+	void GetControlPointMultiUseEntries(APlayerController* ForPC, TArray<FMultiUseEntry, FDefaultAllocator>* MultiUseEntries) { NativeCall<void, APlayerController*, TArray<FMultiUseEntry, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.GetControlPointMultiUseEntries", ForPC, MultiUseEntries); }
+	FString* GetDefaultSettlementName(FString* result) { return NativeCall<FString*, FString*>(this, "APrimalStructureClaimFlag.GetDefaultSettlementName", result); }
+	FString* GetDescriptiveName(FString* result) { return NativeCall<FString*, FString*>(this, "APrimalStructureClaimFlag.GetDescriptiveName", result); }
+	void GetDescriptiveName() { NativeCall<void>(this, "APrimalStructureClaimFlag.GetDescriptiveName"); }
+	FString* GetEditTextString_Implementation(FString* result, APlayerController* ForPC, UObject* AssociatedObject1, int ExtraID1, int ExtraID2) { return NativeCall<FString*, FString*, APlayerController*, UObject*, int, int>(this, "APrimalStructureClaimFlag.GetEditTextString_Implementation", result, ForPC, AssociatedObject1, ExtraID1, ExtraID2); }
+	static APrimalStructureClaimFlag* GetLandClaim(UWorld* ForWorld, const FVector* AtLocation, float SearchRadius) { return NativeCall<APrimalStructureClaimFlag*, UWorld*, const FVector*, float>(nullptr, "APrimalStructureClaimFlag.GetLandClaim", ForWorld, AtLocation, SearchRadius); }
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty, FDefaultAllocator>* OutLifetimeProps) { NativeCall<void, TArray<FLifetimeProperty, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.GetLifetimeReplicatedProps", OutLifetimeProps); }
+	void GetMultiUseEntries(APlayerController* ForPC, TArray<FMultiUseEntry, FDefaultAllocator>* MultiUseEntries) { NativeCall<void, APlayerController*, TArray<FMultiUseEntry, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.GetMultiUseEntries", ForPC, MultiUseEntries); }
+	void GetOtherFlagsInRadius(TArray<APrimalStructureClaimFlag*, FDefaultAllocator>* OtherFlags, int MyTargetingTeam, bool bLookForEnemies, const FVector* AtLocation, float MaxSearchRadius, float MinSearchRadius) { NativeCall<void, TArray<APrimalStructureClaimFlag*, FDefaultAllocator>*, int, bool, const FVector*, float, float>(this, "APrimalStructureClaimFlag.GetOtherFlagsInRadius", OtherFlags, MyTargetingTeam, bLookForEnemies, AtLocation, MaxSearchRadius, MinSearchRadius); }
+	float GetPvEAllowedDeclaimInterval() { return NativeCall<float>(this, "APrimalStructureClaimFlag.GetPvEAllowedDeclaimInterval"); }
+	float GetResourceConsumptionInterval() { return NativeCall<float>(this, "APrimalStructureClaimFlag.GetResourceConsumptionInterval"); }
+	static APrimalStructureClaimFlag* GetSettlementClaim(UWorld* ForWorld, const FVector* AtLocation, float SearchRadius, int IgnoreInvalidFlagsOfTeamID) { return NativeCall<APrimalStructureClaimFlag*, UWorld*, const FVector*, float, int>(nullptr, "APrimalStructureClaimFlag.GetSettlementClaim", ForWorld, AtLocation, SearchRadius, IgnoreInvalidFlagsOfTeamID); }
+	FString* GetSettlementUpkeepRequirementsString(FString* result, UPrimalInventoryComponent* compareInventoryComp, bool bShowOwned) { return NativeCall<FString*, FString*, UPrimalInventoryComponent*, bool>(this, "APrimalStructureClaimFlag.GetSettlementUpkeepRequirementsString", result, compareInventoryComp, bShowOwned); }
+	float GetTotalClaimTime() { return NativeCall<float>(this, "APrimalStructureClaimFlag.GetTotalClaimTime"); }
+	float GetTotalDeclaimTime() { return NativeCall<float>(this, "APrimalStructureClaimFlag.GetTotalDeclaimTime"); }
+	float GetTotalUnclaimTime() { return NativeCall<float>(this, "APrimalStructureClaimFlag.GetTotalUnclaimTime"); }
+	bool HasSufficientConsumeResources(UPrimalInventoryComponent* InvComp, FSeamlessIslandInfo* TheIslandInfo) { return NativeCall<bool, UPrimalInventoryComponent*, FSeamlessIslandInfo*>(this, "APrimalStructureClaimFlag.HasSufficientConsumeResources", InvComp, TheIslandInfo); }
+	void InitClaimTimer() { NativeCall<void>(this, "APrimalStructureClaimFlag.InitClaimTimer"); }
+	void InitDynamicMaterials(UMeshComponent* Component) { NativeCall<void, UMeshComponent*>(this, "APrimalStructureClaimFlag.InitDynamicMaterials", Component); }
+	static APrimalStructureClaimFlag* IsInLandClaimedFlagRadius(UWorld* ForWorld, const FVector* AtLocation, int TargetingTeamFilter, APlayerController* ForPlayer, float SearchRadius, APrimalStructureClaimFlag* ToIgnore) { return NativeCall<APrimalStructureClaimFlag*, UWorld*, const FVector*, int, APlayerController*, float, APrimalStructureClaimFlag*>(nullptr, "APrimalStructureClaimFlag.IsInLandClaimedFlagRadius", ForWorld, AtLocation, TargetingTeamFilter, ForPlayer, SearchRadius, ToIgnore); }
+	bool IsSettlementCombatPhase() { return NativeCall<bool>(this, "APrimalStructureClaimFlag.IsSettlementCombatPhase"); }
+	bool IsValidSettlementHeight() { return NativeCall<bool>(this, "APrimalStructureClaimFlag.IsValidSettlementHeight"); }
+	void LinkSettlementToIsland() { NativeCall<void>(this, "APrimalStructureClaimFlag.LinkSettlementToIsland"); }
+	void NetLinkSettlementToIsland_Implementation(int NewSettlementIslandID) { NativeCall<void, int>(this, "APrimalStructureClaimFlag.NetLinkSettlementToIsland_Implementation", NewSettlementIslandID); }
+	void NetSetTerritoryAllowanceValues_Implementation(int newTerritoryBuildAllowance, const TArray<int, FDefaultAllocator>* newBuildAllowanceListIDs) { NativeCall<void, int, const TArray<int, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.NetSetTerritoryAllowanceValues_Implementation", newTerritoryBuildAllowance, newBuildAllowanceListIDs); }
+	void Net_UpdateTempClaimRateBoost(float NewRateMult) { NativeCall<void, float>(this, "APrimalStructureClaimFlag.Net_UpdateTempClaimRateBoost", NewRateMult); }
+	void Net_UpdateTotalClaimFlags(unsigned int NewCount) { NativeCall<void, unsigned int>(this, "APrimalStructureClaimFlag.Net_UpdateTotalClaimFlags", NewCount); }
+	void NotifyItemAdded(UPrimalItem* anItem, bool bEquipItem) { NativeCall<void, UPrimalItem*, bool>(this, "APrimalStructureClaimFlag.NotifyItemAdded", anItem, bEquipItem); }
+	void NotifyItemQuantityUpdated(UPrimalItem* anItem, int amount) { NativeCall<void, UPrimalItem*, int>(this, "APrimalStructureClaimFlag.NotifyItemQuantityUpdated", anItem, amount); }
+	void NotifyItemRemoved(UPrimalItem* anItem) { NativeCall<void, UPrimalItem*>(this, "APrimalStructureClaimFlag.NotifyItemRemoved", anItem); }
+	void OnFlagDestroyed(bool bNotifyOwners, bool bNotifyNearbyEnemies) { NativeCall<void, bool, bool>(this, "APrimalStructureClaimFlag.OnFlagDestroyed", bNotifyOwners, bNotifyNearbyEnemies); }
+	void OnRep_Claimed() { NativeCall<void>(this, "APrimalStructureClaimFlag.OnRep_Claimed"); }
+	void OnStructurePlacedNotify(APlayerController* PC, FVector AtLocation, FRotator AtRotation, FRotator PlayerViewRotation, APawn* AttachToPawn, FName BoneName, bool bFlipped) { NativeCall<void, APlayerController*, FVector, FRotator, FRotator, APawn*, FName, bool>(this, "APrimalStructureClaimFlag.OnStructurePlacedNotify", PC, AtLocation, AtRotation, PlayerViewRotation, AttachToPawn, BoneName, bFlipped); }
+	void PlacedStructureLocation(APlayerController* ByPC) { NativeCall<void, APlayerController*>(this, "APrimalStructureClaimFlag.PlacedStructureLocation", ByPC); }
+	void PrepareForSaving() { NativeCall<void>(this, "APrimalStructureClaimFlag.PrepareForSaving"); }
+	void ProcessEditText(AShooterPlayerController* ForPC, const FString* TextToUse, bool __formal, int ExtraID1, int ExtraID2) { NativeCall<void, AShooterPlayerController*, const FString*, bool, int, int>(this, "APrimalStructureClaimFlag.ProcessEditText", ForPC, TextToUse, __formal, ExtraID1, ExtraID2); }
+	void RefreshTaxationContainerPointer() { NativeCall<void>(this, "APrimalStructureClaimFlag.RefreshTaxationContainerPointer"); }
+	bool RemoteInventoryAllowActivation(AShooterPlayerController* ForPC) { return NativeCall<bool, AShooterPlayerController*>(this, "APrimalStructureClaimFlag.RemoteInventoryAllowActivation", ForPC); }
+	bool RemoteInventoryAllowViewing(APlayerController* ForPC) { return NativeCall<bool, APlayerController*>(this, "APrimalStructureClaimFlag.RemoteInventoryAllowViewing", ForPC); }
+	void ResetDeClaim() { NativeCall<void>(this, "APrimalStructureClaimFlag.ResetDeClaim"); }
+	void SettlementTick() { NativeCall<void>(this, "APrimalStructureClaimFlag.SettlementTick"); }
+	bool SkipDuringPartialWorldSave() { return NativeCall<bool>(this, "APrimalStructureClaimFlag.SkipDuringPartialWorldSave"); }
+	void SyncClaimValuesFromTeam() { NativeCall<void>(this, "APrimalStructureClaimFlag.SyncClaimValuesFromTeam"); }
+	void TagSettler(APrimalCharacter* theChar, APrimalStructure* theStructure) { NativeCall<void, APrimalCharacter*, APrimalStructure*>(this, "APrimalStructureClaimFlag.TagSettler", theChar, theStructure); }
+	bool TryMultiUse(APlayerController* ForPC, int UseIndex) { return NativeCall<bool, APlayerController*, int>(this, "APrimalStructureClaimFlag.TryMultiUse", ForPC, UseIndex); }
+	void Unstasis() { NativeCall<void>(this, "APrimalStructureClaimFlag.Unstasis"); }
+	void UpdateBedsInRange(APrimalStructureClaimFlag* ToIgnore) { NativeCall<void, APrimalStructureClaimFlag*>(this, "APrimalStructureClaimFlag.UpdateBedsInRange", ToIgnore); }
+	void UpdateBonusClaimRateMultiplier(float NewBonusMultiplier) { NativeCall<void, float>(this, "APrimalStructureClaimFlag.UpdateBonusClaimRateMultiplier", NewBonusMultiplier); }
+	void UpdateClaiming() { NativeCall<void>(this, "APrimalStructureClaimFlag.UpdateClaiming"); }
+	void UpdateLandDeClaiming(APrimalStructureClaimFlag* DeclaimedByFlag) { NativeCall<void, APrimalStructureClaimFlag*>(this, "APrimalStructureClaimFlag.UpdateLandDeClaiming", DeclaimedByFlag); }
+	void UpdateTaxBankName() { NativeCall<void>(this, "APrimalStructureClaimFlag.UpdateTaxBankName"); }
+	void UpdateTeamInRange() { NativeCall<void>(this, "APrimalStructureClaimFlag.UpdateTeamInRange"); }
+	void AddClaimFlag(APrimalStructureClaimFlag* Flag, unsigned __int64 TribeOrOwnerId, int IslandId) { NativeCall<void, APrimalStructureClaimFlag*, unsigned __int64, int>(this, "APrimalStructureClaimFlag.AddClaimFlag", Flag, TribeOrOwnerId, IslandId); }
+	void ChangeClaimFlag(APrimalStructureClaimFlag* Flag, unsigned __int64 OLDTribeOrOwnerId, unsigned __int64 NEWTribeOrOwnerId, int IslandId) { NativeCall<void, APrimalStructureClaimFlag*, unsigned __int64, unsigned __int64, int>(this, "APrimalStructureClaimFlag.ChangeClaimFlag", Flag, OLDTribeOrOwnerId, NEWTribeOrOwnerId, IslandId); }
+	void RemoveClaimFlag(APrimalStructureClaimFlag* Flag, int IslandId) { NativeCall<void, APrimalStructureClaimFlag*, int>(this, "APrimalStructureClaimFlag.RemoveClaimFlag", Flag, IslandId); }
+	void UpdateClaimFlagTribeMessage(APrimalStructureClaimFlag* pFlag, const FString* InNewMessage) { NativeCall<void, APrimalStructureClaimFlag*, const FString*>(this, "APrimalStructureClaimFlag.UpdateClaimFlagTribeMessage", pFlag, InNewMessage); }
+	void NetLinkSettlementToIsland(int NewSettlementIslandID) { NativeCall<void, int>(this, "APrimalStructureClaimFlag.NetLinkSettlementToIsland", NewSettlementIslandID); }
+	void NetSetTerritoryAllowanceValues(int newTerritoryBuildAllowance, const TArray<int, FDefaultAllocator>* newBuildAllowanceListIDs) { NativeCall<void, int, const TArray<int, FDefaultAllocator>*>(this, "APrimalStructureClaimFlag.NetSetTerritoryAllowanceValues", newTerritoryBuildAllowance, newBuildAllowanceListIDs); }
+	UField* Register() { return NativeCall<UField*>(this, "APrimalStructureClaimFlag.Register"); }
+	static void StaticRegisterNativesAPrimalStructureClaimFlag() { NativeCall<void>(nullptr, "APrimalStructureClaimFlag.StaticRegisterNativesAPrimalStructureClaimFlag"); }
+};
+
+
 struct APrimalStructureStaticNodeContainer : APrimalStructureItemContainer
 {
 	static UClass* GetPrivateStaticClass(const wchar_t* Package) { return NativeCall<UClass*, const wchar_t*>(nullptr, "APrimalStructureStaticNodeContainer.GetPrivateStaticClass", Package); }

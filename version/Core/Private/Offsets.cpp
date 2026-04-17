@@ -49,17 +49,35 @@ namespace API
 
 	DWORD64 Offsets::GetAddress(const void* base, const std::string& name)
 	{
-		return reinterpret_cast<DWORD64>(base) + static_cast<DWORD64>(offsets_dump_[name]);
+		const auto it = offsets_dump_.find(name);
+		if (it == offsets_dump_.end())
+		{
+			Log::GetLog()->critical("Offset '{}' not found in offsets dump", name);
+			return 0;
+		}
+		return reinterpret_cast<DWORD64>(base) + static_cast<DWORD64>(it->second);
 	}
 
 	LPVOID Offsets::GetAddress(const std::string& name)
 	{
-		return reinterpret_cast<LPVOID>(module_base_ + static_cast<DWORD64>(offsets_dump_[name]));
+		const auto it = offsets_dump_.find(name);
+		if (it == offsets_dump_.end())
+		{
+			Log::GetLog()->critical("Offset '{}' not found in offsets dump", name);
+			return nullptr;
+		}
+		return reinterpret_cast<LPVOID>(module_base_ + static_cast<DWORD64>(it->second));
 	}
 
 	LPVOID Offsets::GetDataAddress(const std::string& name)
 	{
-		return reinterpret_cast<LPVOID>(data_base_ + static_cast<DWORD64>(offsets_dump_[name]));
+		const auto it = offsets_dump_.find(name);
+		if (it == offsets_dump_.end())
+		{
+			Log::GetLog()->critical("Data offset '{}' not found in offsets dump", name);
+			return nullptr;
+		}
+		return reinterpret_cast<LPVOID>(data_base_ + static_cast<DWORD64>(it->second));
 	}
 
 	BitField Offsets::GetBitField(const void* base, const std::string& name)
@@ -74,7 +92,14 @@ namespace API
 
 	BitField Offsets::GetBitFieldInternal(const void* base, const std::string& name)
 	{
-		const auto bf = bitfields_dump_[name];
+		const auto it = bitfields_dump_.find(name);
+		if (it == bitfields_dump_.end())
+		{
+			Log::GetLog()->critical("Bitfield '{}' not found in bitfields dump", name);
+			return BitField{};
+		}
+
+		const auto& bf = it->second;
 		auto cf = BitField();
 		cf.bit_position = bf.bit_position;
 		cf.length = bf.length;

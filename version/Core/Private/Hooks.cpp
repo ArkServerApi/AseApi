@@ -26,6 +26,19 @@ namespace API
 
 		auto& hook_vector = all_hooks_[func_name];
 
+		// Detour-chain semantics:
+		//   - For the 1st hook on this function we attach `detour` on top of `target`
+		//     (the real function). The trampoline returned in `new_target` will jump
+		//     to the real function and is exposed to the plugin as `*original`.
+		//   - For subsequent hooks we stack on top of the previous detour, so the
+		//     new trampoline jumps to the previous detour, not directly to the real
+		//     function. This preserves a deterministic invocation order:
+		//       last-attached detour -> ... -> first detour -> real function
+		//   - Detours does NOT rewrite trampolines created by earlier `DetourAttach`
+		//     calls, so `*original` pointers handed to previously loaded plugins
+		//     remain valid. They become invalid only on `DetourDetach`, which is
+		//     why `DisableHook` rebuilds the entire chain inside one transaction
+		//     and republishes new trampoline addresses to all remaining plugins.
 		LPVOID new_target = hook_vector.empty()
 			                    ? target
 			                    : hook_vector.back()->detour;
@@ -86,6 +99,15 @@ namespace API
 			return false;
 		}
 
+		// Build the list of hooks that must remain after removal, preserving original order.
+		std::vector<std::shared_ptr<Hook>> remaining;
+		remaining.reserve(hook_vector.size() - 1);
+		for (const auto& h : hook_vector)
+		{
+			if (h->detour != detour)
+				remaining.push_back(h);
+		}
+
 		if (DetourTransactionBegin())
 		{
 			Log::GetLog()->error("Failed to create Detour Transaction for {}", func_name);
@@ -99,15 +121,39 @@ namespace API
 			return false;
 		}
 
-		// Remove all hooks placed on this function
+		// Detach all hooks placed on this function. We keep track of how many were
+		// successfully detached so we can roll back on failure.
+		size_t detached_count = 0;
 		for (const auto& hook : hook_vector)
 		{
 			if (DetourDetach(&hook->target, hook->detour))
 			{
-				Log::GetLog()->error("Failed to detach Detour Transaction for {}", func_name);
+				Log::GetLog()->error("Failed to detach hook for {} (rolling back)", func_name);
 				DetourTransactionAbort();
 				return false;
 			}
+			++detached_count;
+		}
+		(void)detached_count;
+
+		// Re-attach the remaining hooks inside the SAME transaction, rebuilding the
+		// detour chain from scratch and updating each plugin's `original` trampoline
+		// pointer atomically. This guarantees that on commit either the full chain
+		// (minus the removed hook) is live, or nothing changes (on abort).
+		LPVOID prev_target = target;
+		std::vector<LPVOID> new_targets;
+		new_targets.reserve(remaining.size());
+		for (auto& hook : remaining)
+		{
+			LPVOID new_target = prev_target;
+			if (DetourAttach(&new_target, hook->detour))
+			{
+				Log::GetLog()->error("Failed to re-attach hook for {} (rolling back)", func_name);
+				DetourTransactionAbort();
+				return false;
+			}
+			new_targets.push_back(new_target);
+			prev_target = hook->detour;
 		}
 
 		if (DetourTransactionCommit())
@@ -117,17 +163,17 @@ namespace API
 			return false;
 		}
 
-		// Remove hook from all_hooks vector
-		hook_vector.erase(std::remove(hook_vector.begin(), hook_vector.end(), *iter), hook_vector.end());
-
-		auto hook_vec(move(hook_vector));
-		hook_vector.clear();
-
-		// Enable all hooks again
-		for (const auto& hook : hook_vec)
+		// Transaction committed successfully: publish the new chain state.
+		// At this point the trampoline addresses returned by Detours are valid and
+		// the plugin-visible `original` pointers can safely be updated.
+		for (size_t i = 0; i < remaining.size(); ++i)
 		{
-			SetHookInternal(func_name, hook->detour, hook->original);
+			remaining[i]->target = new_targets[i];
+			if (remaining[i]->original != nullptr)
+				*remaining[i]->original = new_targets[i];
 		}
+
+		hook_vector = std::move(remaining);
 
 		return true;
 	}

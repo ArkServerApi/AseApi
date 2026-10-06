@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 #include <mutex>
 #include "API/Base.h"
 
@@ -63,6 +64,7 @@ namespace API
 		 * \param data key
 		 * \param data value
 		 * \param included headers
+		 * keys and values are url encoded unless already encoded
 		 */
 		ARK_API bool CreatePostRequest(const std::string& url,
 			const std::function<void(bool, std::string)>& callback,
@@ -79,7 +81,16 @@ namespace API
 		ARK_API bool CreateDeleteRequest(const std::string& url,
 			const std::function<void(bool, std::string)>& callback,
 			std::vector<std::string> headers = {});
+
+		/**
+		 * \brief Cancels all requests of the calling plugin whose callback has not been called yet.
+		 * Their callbacks will not be called. Requests of an unloaded plugin are cancelled automatically.
+		 * \return Number of cancelled requests
+		 */
+		ARK_API int CancelPendingRequests();
 	private:
+		friend void CancelModuleRequests(HMODULE module);
+
 		class impl;
 		std::unique_ptr<impl> pimpl;
 	};

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 #include "../BasicTypes.h"
 #include "../Templates/UnrealTypeTraits.h"
 #include "../Templates/UnrealTemplate.h"
@@ -450,7 +452,8 @@ public:
 	FORCEINLINE const ValueType& FindChecked(KeyConstPointerType Key) const
 	{
 		const auto* Pair = Pairs.Find(Key);
-		check(Pair != nullptr);
+		if (Pair == nullptr)
+			throw std::out_of_range("TMap::FindChecked: key not found");
 		return Pair->Value;
 	}
 
@@ -463,7 +466,8 @@ public:
 	FORCEINLINE ValueType& FindChecked(KeyConstPointerType Key)
 	{
 		auto* Pair = Pairs.Find(Key);
-		check(Pair != nullptr);
+		if (Pair == nullptr)
+			throw std::out_of_range("TMap::FindChecked: key not found");
 		return Pair->Value;
 	}
 
@@ -982,7 +986,7 @@ public:
 		}
 	}
 
-	FORCEINLINE       ValueType& operator[](KeyConstPointerType Key) { return this->FindChecked(Key); }
+	FORCEINLINE       ValueType& operator[](KeyConstPointerType Key) { return this->FindOrAdd(Key); }
 	FORCEINLINE const ValueType& operator[](KeyConstPointerType Key) const { return this->FindChecked(Key); }
 };
 

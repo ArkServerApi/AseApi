@@ -35,7 +35,7 @@ public:
 	{
 		for (auto& Item : Other)
 		{
-			Add(new T(Item));
+			Add(CopyItem(Item));
 		}
 	}
 
@@ -51,7 +51,7 @@ public:
 			Empty(Other.Num());
 			for (auto& Item : Other)
 			{
-				Add(new T(Item));
+				Add(CopyItem(Item));
 			}
 		}
 
@@ -337,6 +337,13 @@ public:
 	}
 
 private:
+
+	/** Copies an element into FMemory, which every free path here releases it to. */
+	static T* CopyItem(const T& Item)
+	{
+		void* Memory = FMemory::Malloc(sizeof(T), alignof(T));
+		return new (Memory) T(Item);
+	}
 
 	/**
 	 * Calls destructor and frees memory on every element in the array.

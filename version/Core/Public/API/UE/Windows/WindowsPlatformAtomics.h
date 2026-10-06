@@ -14,7 +14,7 @@ struct FWindowsPlatformAtomics
 {
 	static FORCEINLINE int32 InterlockedIncrement( volatile int32* Value )
 	{
-		return (int32)_InterlockedIncrement((int32*)Value);
+		return (int32)::_InterlockedIncrement((long*)Value);
 	}
 
 #if PLATFORM_HAS_64BIT_ATOMICS

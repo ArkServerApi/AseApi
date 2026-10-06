@@ -102,14 +102,15 @@ struct FMemory
 	// C style memory allocation stubs.
 	//
 
-	static void * Malloc(SIZE_T Count, uint32 Alignment = DEFAULT_ALIGNMENT) { return NativeCall<void *, unsigned __int64, unsigned int>(nullptr, "FMemory.Malloc", Count, Alignment); }
+	static void * Malloc(SIZE_T Count, uint32 Alignment = DEFAULT_ALIGNMENT) { static NativeFunction f{ "FMemory.Malloc" }; return NativeCall<void *, unsigned __int64, unsigned int>(nullptr, f, Count, Alignment); }
 	static void * Realloc(void * Ptr, SIZE_T Size, uint32 Alignment = DEFAULT_ALIGNMENT)
 	{
 		if (!Ptr)
-			return Malloc(Size);
-		return NativeCall<void *, void *, unsigned __int64>(nullptr, "FMemory.Realloc", Ptr, Size);
+			return Malloc(Size, Alignment);
+		static NativeFunction f{ "FMemory.Realloc" };
+		return NativeCall<void *, void *, unsigned __int64, unsigned int>(nullptr, f, Ptr, Size, Alignment);
 	}
-	static void Free(void* Original) { NativeCall<void, void *>(nullptr, "FMemory.Free", Original); }
+	static void Free(void* Original) { static NativeFunction f{ "FMemory.Free" }; NativeCall<void, void *>(nullptr, f, Original); }
 
 	static SIZE_T QuantizeSize(SIZE_T Count, uint32 Alignment = DEFAULT_ALIGNMENT)
 	{

@@ -149,7 +149,7 @@ struct UPrimalBuffPersistentData;
 struct UCharacterMovementComponent;
 struct FDinoExtraDefaultItemList;
 struct FWeaponData {};
-struct FAIRequestID {};
+struct FAIRequestID { unsigned int RequestID; };
 struct UPrimalGameData;
 struct UEngine;
 struct UGameEngine;
@@ -285,7 +285,7 @@ struct FStatValPair;
 struct FStatColorMapping;
 struct FItemStatGroupValue;
 struct FCustomItemData;
-struct FNetworkGUID {};
+struct FNetworkGUID { unsigned int Value; };
 struct FLevelActorVisibilityState {};
 struct FShorelineProps;
 struct FShorelineMetadata;
@@ -690,6 +690,52 @@ ARK_API LPVOID GetDataAddress(const std::string& name);
 
 ARK_API BitField GetBitField(const void* base, const std::string& name);
 ARK_API BitField GetBitField(LPVOID base, const std::string& name);
+
+// lookups without a std::string, unknown names are logged once
+ARK_API DWORD64 GetAddress(const void* base, const char* name);
+ARK_API LPVOID GetAddress(const char* name);
+
+ARK_API LPVOID GetDataAddress(const char* name);
+
+ARK_API BitField GetBitField(const void* base, const char* name);
+ARK_API BitField GetBitField(LPVOID base, const char* name);
+
+// silent probes: false if the name is unknown. the offset is the field offset, or the rva for functions and globals
+ARK_API bool FindNativeOffset(const char* name, intptr_t* offset);
+ARK_API bool FindNativeBitField(const char* name, BitField* bit_field);
+
+inline bool HasNativeSymbol(const char* name)
+{
+	return FindNativeOffset(name, nullptr) || FindNativeBitField(name, nullptr);
+}
+
+extern "C" IMAGE_DOS_HEADER __ImageBase;
+
+namespace API
+{
+	ARK_API void LogDeprecatedUse(const char* api_name, HMODULE caller);
+}
+
+// logs the plugin using a deprecated declaration
+inline void ReportDeprecatedApiUse(const char* api_name)
+{
+	API::LogDeprecatedUse(api_name, reinterpret_cast<HMODULE>(&__ImageBase));
+}
+
+// & gives the slot address
+template <typename T>
+struct TPointerField
+{
+	T** Slot;
+	const char* Name;
+
+	operator T*() const { return *Slot; }
+	T* operator->() const { return *Slot; }
+	explicit operator bool() const { return *Slot != nullptr; }
+	bool operator==(std::nullptr_t) const { return *Slot == nullptr; }
+	bool operator!=(std::nullptr_t) const { return *Slot != nullptr; }
+	[[deprecated("this field returns the pointer now, & gives the address of the field")]] T* operator&() const { ReportDeprecatedApiUse(Name); return reinterpret_cast<T*>(Slot); }
+};
 
 #define DECLARE_HOOK(name, returnType, ...) typedef returnType(__fastcall * name ## _Func)(__VA_ARGS__); \
 inline name ## _Func name ## _original; \

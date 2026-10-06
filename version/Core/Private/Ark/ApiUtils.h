@@ -2,6 +2,8 @@
 
 #include <IApiUtils.h>
 
+#include <mutex>
+
 namespace ArkApi
 {
 	class ApiUtils : public IApiUtils
@@ -29,6 +31,7 @@ namespace ArkApi
 		AShooterPlayerController* FindPlayerFromSteamId_Internal(uint64 steam_id) const override;
 		void SetPlayerController(AShooterPlayerController* player_controller);
 		void RemovePlayerController(AShooterPlayerController* player_controller);
+		void RunHiddenCommand_Internal(AShooterPlayerController* player_controller, FString* command) override;
 
 	private:
 		UWorld* u_world_{nullptr};
@@ -36,5 +39,6 @@ namespace ArkApi
 		ServerStatus status_{0};
 		UShooterCheatManager* cheatmanager_{ nullptr };
 		std::unordered_map<uint64, AShooterPlayerController*> steam_id_map_;
+		mutable std::mutex steam_id_mutex_;
 	};
 } // namespace ArkApi

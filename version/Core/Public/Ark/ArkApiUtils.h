@@ -1,9 +1,9 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 
 #include <API/ARK/Ark.h>
-#include <../Private/Ark/Globals.h>
 
 namespace ArkApi
 {
@@ -14,6 +14,16 @@ namespace ArkApi
 		float x = 0.f;
 		float y = 0.f;
 	};
+
+	// paths built by IApiUtils::GetClassBlueprint, with the names they were built from
+	struct BlueprintPathEntry
+	{
+		FName Name;
+		FName PackageName;
+		std::wstring Path;
+	};
+
+	inline API::SharedCache<UClass*, BlueprintPathEntry> BlueprintPathCache;
 
 	class ARK_API IApiUtils
 	{
@@ -39,6 +49,18 @@ namespace ArkApi
 		* \brief Returns a point to URCON CheatManager
 		*/
 		virtual UShooterCheatManager* GetCheatManager() const = 0;
+
+		/**
+		* \brief Builds the message text. Without args msg is used as plain text, with args it is a fmt format string
+		*/
+		template <typename T, typename... Args>
+		static FORCEINLINE FString MakeMessageText(const T* msg, Args&&... args)
+		{
+			if constexpr (sizeof...(Args) == 0)
+				return FString(msg);
+			else
+				return FString::Format(msg, std::forward<Args>(args)...);
+		}
 		/**
 		* \brief Sends server message to the specific player. Using fmt::format.
 		* \tparam T Either a a char or wchar_t
@@ -54,7 +76,7 @@ namespace ArkApi
 		{
 			if (player_controller)
 			{
-				FString text(FString::Format(msg, std::forward<Args>(args)...));
+				FString text(MakeMessageText(msg, std::forward<Args>(args)...));
 				player_controller->ClientServerChatDirectMessage(&text, msg_color, false);
 			}
 		}
@@ -77,7 +99,7 @@ namespace ArkApi
 		{
 			if (player_controller)
 			{
-				FString text(FString::Format(msg, std::forward<Args>(args)...));
+				FString text(MakeMessageText(msg, std::forward<Args>(args)...));
 
 				player_controller->ClientServerSOTFNotificationCustom(&text, color, display_scale, display_time, icon,
 					nullptr);
@@ -99,7 +121,7 @@ namespace ArkApi
 		{
 			if (player_controller)
 			{
-				const FString text(FString::Format(msg, std::forward<Args>(args)...));
+				const FString text(MakeMessageText(msg, std::forward<Args>(args)...));
 
 				FChatMessage chat_message = FChatMessage();
 				chat_message.SenderName = sender_name;
@@ -121,9 +143,13 @@ namespace ArkApi
 		FORCEINLINE void SendServerMessageToAll(FLinearColor msg_color, const T* msg,
 			Args&&... args)
 		{
-			FString text(FString::Format(msg, std::forward<Args>(args)...));
+			UWorld* world = GetWorld();
+			if (!world)
+				return;
 
-			const auto& player_controllers = GetWorld()->PlayerControllerListField();
+			FString text(MakeMessageText(msg, std::forward<Args>(args)...));
+
+			const auto& player_controllers = world->PlayerControllerListField();
 			for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 			{
 				AShooterPlayerController* shooter_pc = static_cast<AShooterPlayerController*>(player_controller.Get());
@@ -149,9 +175,13 @@ namespace ArkApi
 		FORCEINLINE void SendNotificationToAll(FLinearColor color, float display_scale,
 			float display_time, UTexture2D* icon, const T* msg, Args&&... args)
 		{
-			FString text(FString::Format(msg, std::forward<Args>(args)...));
+			UWorld* world = GetWorld();
+			if (!world)
+				return;
 
-			const auto& player_controllers = GetWorld()->PlayerControllerListField();
+			FString text(MakeMessageText(msg, std::forward<Args>(args)...));
+
+			const auto& player_controllers = world->PlayerControllerListField();
 			for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 			{
 				AShooterPlayerController* shooter_pc = static_cast<AShooterPlayerController*>(player_controller.Get());
@@ -174,13 +204,17 @@ namespace ArkApi
 		template <typename T, typename... Args>
 		FORCEINLINE void SendChatMessageToAll(const FString& sender_name, const T* msg, Args&&... args)
 		{
-			const FString text(FString::Format(msg, std::forward<Args>(args)...));
+			UWorld* world = GetWorld();
+			if (!world)
+				return;
+
+			const FString text(MakeMessageText(msg, std::forward<Args>(args)...));
 
 			FChatMessage chat_message = FChatMessage();
 			chat_message.SenderName = sender_name;
 			chat_message.Message = text;
 
-			const auto& player_controllers = GetWorld()->PlayerControllerListField();
+			const auto& player_controllers = world->PlayerControllerListField();
 			for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 			{
 				AShooterPlayerController* shooter_pc = static_cast<AShooterPlayerController*>(player_controller.Get());
@@ -198,9 +232,9 @@ namespace ArkApi
 		{
 			uint64 steam_id = 0;
 
-			AShooterPlayerController* playerController = static_cast<AShooterPlayerController*>(controller);
-			if (playerController != nullptr)
+			if (controller != nullptr && controller->IsA(AShooterPlayerController::GetPrivateStaticClass()))
 			{
+				AShooterPlayerController* playerController = static_cast<AShooterPlayerController*>(controller);
 				steam_id = playerController->GetUniqueNetIdAsUINT64();
 			}
 
@@ -216,15 +250,21 @@ namespace ArkApi
 		{
 			AShooterPlayerController* result = nullptr;
 
-			const auto& player_controllers = GetWorld()->PlayerControllerListField();
+			UWorld* world = GetWorld();
+			if (!world)
+				return result;
+
+			const auto& player_controllers = world->PlayerControllerListField();
 			for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 			{
-				const FString current_name = player_controller->PlayerStateField()->PlayerNameField();
+				APlayerController* pc = player_controller.Get();
+				if (!pc || !pc->PlayerStateField())
+					continue;
+
+				const FString& current_name = pc->PlayerStateField()->PlayerNameField();
 				if (current_name == steam_name)
 				{
-					auto* shooter_pc = static_cast<AShooterPlayerController*>(player_controller.Get());
-
-					result = shooter_pc;
+					result = static_cast<AShooterPlayerController*>(pc);
 					break;
 				}
 			}
@@ -266,7 +306,11 @@ namespace ArkApi
 		{
 			TArray<AShooterPlayerController*> found_players;
 
-			const auto& player_controllers = GetWorld()->PlayerControllerListField();
+			UWorld* world = GetWorld();
+			if (!world)
+				return found_players;
+
+			const auto& player_controllers = world->PlayerControllerListField();
 			for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 			{
 				auto* shooter_player = static_cast<AShooterPlayerController*>(player_controller.Get());
@@ -291,7 +335,7 @@ namespace ArkApi
 		{
 			if (player_controller != nullptr)
 			{
-				FString player_name("");
+				FString player_name;
 				player_controller->GetPlayerCharacterName(&player_name);
 				return player_name;
 			}
@@ -305,7 +349,9 @@ namespace ArkApi
 		*/
 		static FORCEINLINE FString GetSteamName(AController* player_controller)
 		{
-			return player_controller != nullptr ? player_controller->PlayerStateField()->PlayerNameField() : "";
+			return player_controller != nullptr && player_controller->PlayerStateField() != nullptr
+				? player_controller->PlayerStateField()->PlayerNameField()
+				: "";
 		}
 
 		/**
@@ -332,7 +378,13 @@ namespace ArkApi
 		FORCEINLINE bool SpawnDrop(const wchar_t* blueprint, FVector pos, int amount, float item_quality = 0.0f,
 			bool force_blueprint = false, float life_span = 0.0f) const
 		{
-			APlayerController* player = GetWorld()->GetFirstPlayerController();
+			UWorld* world = GetWorld();
+			if (!world)
+			{
+				return false;
+			}
+
+			APlayerController* player = world->GetFirstPlayerController();
 			if (!player)
 			{
 				return false;
@@ -366,12 +418,13 @@ namespace ArkApi
 			FVector zero_vector{ 0, 0, 0 };
 			FRotator rot{ 0, 0, 0 };
 
-			UPrimalInventoryComponent::StaticDropItem(player, info, archetype_dropped, &rot, true, &pos, &rot, true,
+			ADroppedItem* dropped = UPrimalInventoryComponent::StaticDropItem(player, info, archetype_dropped, &rot, true, &pos, &rot, true,
 				false, false, true, nullptr, &zero_vector, nullptr, life_span);
 
+			NativeCall<void>(info, "FItemNetInfo.~FItemNetInfo");
 			FMemory::Free(info);
 
-			return true;
+			return dropped != nullptr;
 		}
 
 		/**
@@ -389,7 +442,8 @@ namespace ArkApi
 		{
 			if (player == nullptr)
 			{
-				player = static_cast<AShooterPlayerController*>(GetWorld()->GetFirstPlayerController());
+				UWorld* world = GetWorld();
+				player = world != nullptr ? static_cast<AShooterPlayerController*>(world->GetFirstPlayerController()) : nullptr;
 				if (player == nullptr)
 				{
 					return nullptr;
@@ -409,18 +463,20 @@ namespace ArkApi
 
 				if (force_tame)
 				{
-					dino->TamingTeamIDField() = player->TargetingTeamField();
-
 					auto* state = static_cast<AShooterPlayerState*>(player->PlayerStateField());
+					if (state != nullptr)
+					{
+						dino->TamingTeamIDField() = player->TargetingTeamField();
 
-					FString player_name;
-					state->GetPlayerName(&player_name);
+						FString player_name;
+						state->GetPlayerName(&player_name);
 
-					dino->TamerStringField() = player_name;
+						dino->TamerStringField() = player_name;
 
-					state->SetTribeTamingDinoSettings(dino);
+						state->SetTribeTamingDinoSettings(dino);
 
-					dino->TameDino(player, true, 0, true, true, false);
+						dino->TameDino(player, true, 0, true, true, false);
+					}
 				}
 
 				if (neutered)
@@ -433,6 +489,11 @@ namespace ArkApi
 				dino->BeginPlay();
 
 				return dino;
+			}
+
+			if (actor != nullptr)
+			{
+				actor->Destroy(false, true);
 			}
 
 			return nullptr;
@@ -535,18 +596,28 @@ namespace ArkApi
 				return -1;
 			}
 
-			UPrimalInventoryComponent* inventory_component =
-				player_controller->GetPlayerCharacter()->MyInventoryComponentField();
+			AShooterCharacter* character = player_controller->GetPlayerCharacter();
+			if (character == nullptr)
+			{
+				return -1;
+			}
+
+			UPrimalInventoryComponent* inventory_component = character->MyInventoryComponentField();
 			if (inventory_component == nullptr)
 			{
 				return -1;
 			}
 
-			FString name;
 			int item_count = 0;
 
 			for (UPrimalItem* item : inventory_component->InventoryItemsField())
 			{
+				if (item == nullptr)
+				{
+					continue;
+				}
+
+				FString name;
 				item->GetItemName(&name, true, false, nullptr);
 
 				if (name.Equals(item_name, ESearchCase::IgnoreCase))
@@ -589,9 +660,15 @@ namespace ArkApi
 
 		static FORCEINLINE uint64 GetPlayerID(APrimalCharacter* character)
 		{
+			if (character == nullptr || !character->IsA(AShooterCharacter::GetPrivateStaticClass()))
+			{
+				return static_cast<uint64>(-1);
+			}
+
 			auto* shooter_character = static_cast<AShooterCharacter*>(character);
-			return shooter_character != nullptr && shooter_character->GetPlayerData() != nullptr
-				? shooter_character->GetPlayerData()->MyDataField()->PlayerDataIDField()
+			auto* player_data = shooter_character->GetPlayerData();
+			return player_data != nullptr && player_data->MyDataField() != nullptr
+				? player_data->MyDataField()->PlayerDataIDField()
 				: -1;
 		}
 
@@ -603,21 +680,31 @@ namespace ArkApi
 
 		FORCEINLINE uint64 GetSteamIDForPlayerID(int player_id) const
 		{
-			uint64 steam_id = GetShooterGameMode()->GetSteamIDForPlayerID(player_id);
+			AShooterGameMode* game_mode = GetShooterGameMode();
+			UWorld* world = GetWorld();
+			if (game_mode == nullptr || world == nullptr)
+			{
+				return 0;
+			}
+
+			uint64 steam_id = game_mode->GetSteamIDForPlayerID(player_id);
 			if (steam_id == 0)
 			{
-				const auto& player_controllers = GetWorld()->PlayerControllerListField();
+				const auto& player_controllers = world->PlayerControllerListField();
 				for (TWeakObjectPtr<APlayerController> player_controller : player_controllers)
 				{
 					auto* shooter_pc = static_cast<AShooterPlayerController*>(player_controller.Get());
-					if (shooter_pc != nullptr && shooter_pc->LinkedPlayerIDField() == player_id)
+					if (shooter_pc != nullptr && static_cast<uint64>(shooter_pc->LinkedPlayerIDField()) == static_cast<uint64>(player_id))
 					{
 						steam_id = shooter_pc->GetUniqueNetIdAsUINT64();
 						break;
 					}
 				}
 
-				GetShooterGameMode()->AddPlayerID(player_id, steam_id);
+				if (steam_id != 0)
+				{
+					game_mode->AddPlayerID(player_id, steam_id);
+				}
 			}
 
 			return steam_id;
@@ -643,9 +730,29 @@ namespace ArkApi
 		{
 			if (the_class != nullptr)
 			{
+				// for a class directly in a package the path is made of the two names only
+				UObject* package = the_class->OuterField();
+				const bool cacheable = package != nullptr && package->OuterField() == nullptr;
+				const auto same_name = [](const FName& a, const FName& b)
+				{
+					return a.ComparisonIndex == b.ComparisonIndex && a.Number == b.Number;
+				};
+
+				BlueprintPathEntry cached;
+				if (cacheable && BlueprintPathCache.Find(the_class, cached) && same_name(cached.Name, the_class->NameField()) &&
+					same_name(cached.PackageName, package->NameField()))
+				{
+					return FString(cached.Path);
+				}
+
 				FString path;
 				UVictoryCore::ClassToStringReference(&path, TSubclassOf<UObject>(the_class));
-				return "Blueprint'" + path.LeftChop(2) + "'";
+				FString blueprint = "Blueprint'" + path.LeftChop(2) + "'";
+
+				if (cacheable && !path.IsEmpty())
+					BlueprintPathCache.Set(the_class, { the_class->NameField(), package->NameField(), *blueprint });
+
+				return blueprint;
 			}
 
 			return FString("");
@@ -656,7 +763,8 @@ namespace ArkApi
 		*/
 		FORCEINLINE AShooterGameState* GetGameState()
 		{
-			return static_cast<AShooterGameState*>(GetWorld()->GameStateField());
+			UWorld* world = GetWorld();
+			return world != nullptr ? static_cast<AShooterGameState*>(world->GameStateField()) : nullptr;
 		}
 
 		/**
@@ -711,7 +819,13 @@ namespace ArkApi
 		*/
 		FORCEINLINE UPrimalGameData* GetGameData()
 		{
-			UPrimalGlobals* singleton = static_cast<UPrimalGlobals*>(Globals::GEngine()()->GameSingletonField());
+			UEngine* engine = Globals::GEngine()();
+			UPrimalGlobals* singleton = engine != nullptr ? static_cast<UPrimalGlobals*>(engine->GameSingletonField()) : nullptr;
+			if (singleton == nullptr)
+			{
+				return nullptr;
+			}
+
 			return (singleton->PrimalGameDataOverrideField() != nullptr) ? singleton->PrimalGameDataOverrideField() : singleton->PrimalGameDataField();
 		}
 
@@ -722,7 +836,13 @@ namespace ArkApi
 		{
 			TArray<AActor*> out_actors;
 
-			UVictoryCore::ServerOctreeOverlapActors(&out_actors, GetWorld(), location, radius, ActorType, true);
+			UWorld* world = GetWorld();
+			if (world == nullptr)
+			{
+				return out_actors;
+			}
+
+			UVictoryCore::ServerOctreeOverlapActors(&out_actors, world, location, radius, ActorType, true);
 
 			return out_actors;
 		}
@@ -732,12 +852,52 @@ namespace ArkApi
 		*/
 		FORCEINLINE TArray<AActor*> GetAllActorsInRange(FVector location, float radius, EServerOctreeGroup::Type ActorType, TArray<AActor*> ignores)
 		{
-			TArray<AActor*> out_actors;
+			TArray<AActor*> out_actors = GetAllActorsInRange(location, radius, ActorType);
 
-			UVictoryCore::ServerOctreeOverlapActors(&out_actors, GetWorld(), location, radius, ActorType, true);
+			if (ignores.Num() > 16)
+			{
+				// open addressing set of the ignored pointers, null is kept apart as it marks a free slot
+				size_t size = 64;
+				while (size < static_cast<size_t>(ignores.Num()) * 2)
+					size *= 2;
 
-			for (AActor* ignore : ignores)
-				out_actors.Remove(ignore);
+				std::vector<AActor*> ignored(size, nullptr);
+				const auto slot = [size](AActor* actor)
+				{
+					return static_cast<size_t>((reinterpret_cast<uintptr_t>(actor) * 0x9E3779B97F4A7C15ull) >> 40) & (size - 1);
+				};
+
+				bool ignore_null = false;
+				for (AActor* actor : ignores)
+				{
+					if (actor == nullptr)
+					{
+						ignore_null = true;
+						continue;
+					}
+
+					size_t i = slot(actor);
+					while (ignored[i] != nullptr && ignored[i] != actor)
+						i = (i + 1) & (size - 1);
+					ignored[i] = actor;
+				}
+
+				out_actors.RemoveAll([&](AActor* actor)
+				{
+					if (actor == nullptr)
+						return ignore_null;
+
+					for (size_t i = slot(actor); ignored[i] != nullptr; i = (i + 1) & (size - 1))
+					{
+						if (ignored[i] == actor)
+							return true;
+					}
+
+					return false;
+				});
+			}
+			else if (ignores.Num() > 0)
+				out_actors.RemoveAll([&ignores](AActor* actor) { return ignores.Contains(actor); });
 
 			return out_actors;
 		}
@@ -747,9 +907,16 @@ namespace ArkApi
 		*/
 		FORCEINLINE MapCoords FVectorToCoords(FVector actor_position)
 		{
-			AWorldSettings* world_settings = GetWorld()->GetWorldSettings(false, true);
-			APrimalWorldSettings* p_world_settings = static_cast<APrimalWorldSettings*>(world_settings);
 			MapCoords coords;
+
+			UWorld* world = GetWorld();
+			AWorldSettings* world_settings = world != nullptr ? world->GetWorldSettings(false, true) : nullptr;
+			if (world_settings == nullptr)
+			{
+				return coords;
+			}
+
+			APrimalWorldSettings* p_world_settings = static_cast<APrimalWorldSettings*>(world_settings);
 
 			float lat_scale = p_world_settings->LatitudeScaleField() != 0 ? p_world_settings->LatitudeScaleField() : 800.0f;
 			float lon_scale = p_world_settings->LongitudeScaleField() != 0 ? p_world_settings->LongitudeScaleField() : 800.0f;
@@ -795,13 +962,18 @@ namespace ArkApi
 
 		void RunHiddenCommand(AShooterPlayerController* _this, FString* Command)
 		{
-			FString result;
-			HideCommand = true;
-			_this->ConsoleCommand(&result, Command, false);
-			HideCommand = false;
+			if (_this != nullptr && Command != nullptr)
+			{
+				RunHiddenCommand_Internal(_this, Command);
+			}
 		}
 	private:
 		virtual AShooterPlayerController* FindPlayerFromSteamId_Internal(uint64 steam_id) const = 0;
+		virtual void RunHiddenCommand_Internal(AShooterPlayerController* player_controller, FString* command)
+		{
+			FString result;
+			player_controller->ConsoleCommand(&result, command, false);
+		}
 	};
 
 	ARK_API IApiUtils& APIENTRY GetApiUtils();

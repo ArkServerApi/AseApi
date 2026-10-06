@@ -8,6 +8,7 @@
 #include "Core/Private/Atlas/AtlasBaseApi.h"
 #include "Core/Public/Logger/Logger.h"
 #include "Core/Public/Tools.h"
+#include "Core/Private/Helpers.h"
 
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Iphlpapi.lib")
@@ -37,30 +38,28 @@ DWORD GetParentProcessId()
 	ZeroMemory(&ProcessEntry, sizeof(ProcessEntry));
 	ProcessEntry.dwSize = sizeof(ProcessEntry);
 
-	if (!Process32First(Snapshot, &ProcessEntry))
-		return InvalidParentProcessId;
+	DWORD ParentProcessId = InvalidParentProcessId;
 
-	do
+	if (Process32First(Snapshot, &ProcessEntry))
 	{
-		if (ProcessEntry.th32ProcessID == PID)
-			return ProcessEntry.th32ParentProcessID;
-	} while (Process32Next(Snapshot, &ProcessEntry));
+		do
+		{
+			if (ProcessEntry.th32ProcessID == PID)
+			{
+				ParentProcessId = ProcessEntry.th32ParentProcessID;
+				break;
+			}
+		} while (Process32Next(Snapshot, &ProcessEntry));
+	}
 
-	return InvalidParentProcessId;
+	CloseHandle(Snapshot);
+
+	return ParentProcessId;
 }
 
 bool AttachToParent()
 {
-	const std::string config_path = ArkApi::Tools::GetCurrentDir() + "/config.json";
-	std::ifstream file{ config_path };
-	if (!file.is_open())
-		return false;
-
-	nlohmann::json config;
-	file >> config;
-	file.close();
-	
-	return config["settings"].value("AttachToParent", false);
+	return API::GetSettingBool(API::ReadSettings(), "AttachToParent", false);
 }
 
 void OpenConsole()
@@ -160,9 +159,29 @@ void Init()
 		fs::create_directory(current_dir + "/logs");
 	}
 
-	PruneOldLogs();
+	std::string prune_error;
+	try
+	{
+		PruneOldLogs();
+	}
+	catch (const std::exception& error)
+	{
+		prune_error = error.what();
+	}
 
 	Log::Get().Init("API");
+
+	if (!prune_error.empty())
+	{
+		Log::GetLog()->warn("Failed to prune old logs - {}", prune_error);
+	}
+
+	std::string settings_error;
+	API::ReadSettings(&settings_error);
+	if (!settings_error.empty())
+	{
+		Log::GetLog()->error(settings_error);
+	}
 
 	const std::string game_name = DetectGame();
 	if (game_name == "Ark")
@@ -170,9 +189,15 @@ void Init()
 	else if (game_name == "Atlas")
 		API::game_api = std::make_unique<API::AtlasBaseApi>();
 	else
+	{
 		Log::GetLog()->critical("Failed to detect game");
+		return;
+	}
 
-	API::game_api->Init();
+	if (!API::game_api->Init())
+	{
+		Log::GetLog()->critical("The API failed to initialize, no plugins will be loaded");
+	}
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinst_dll, DWORD fdw_reason, LPVOID /*unused*/)
@@ -198,7 +223,20 @@ BOOL WINAPI DllMain(HINSTANCE hinst_dll, DWORD fdw_reason, LPVOID /*unused*/)
 			mProcs[i] = reinterpret_cast<UINT_PTR>(GetProcAddress(m_hinst_dll, import_names[i]));
 		}
 
-		Init();
+		try
+		{
+			Init();
+		}
+		catch (const std::exception& error)
+		{
+			OutputDebugStringA("ArkApi: initialization failed - ");
+			OutputDebugStringA(error.what());
+
+			if (Log::GetLog())
+			{
+				Log::GetLog()->critical("Initialization failed - {}", error.what());
+			}
+		}
 	}
 	else if (fdw_reason == DLL_PROCESS_DETACH)
 	{

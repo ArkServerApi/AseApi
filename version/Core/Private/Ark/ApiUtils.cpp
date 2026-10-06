@@ -1,6 +1,7 @@
 #include "ApiUtils.h"
 
 #include "../IBaseApi.h"
+#include <../Private/Ark/Globals.h>
 
 namespace ArkApi
 {
@@ -55,6 +56,7 @@ namespace ArkApi
 
 		if (steam_id != 0)
 		{
+			std::lock_guard<std::mutex> lock(steam_id_mutex_);
 			steam_id_map_[steam_id] = player_controller;
 		}
 	}
@@ -66,10 +68,20 @@ namespace ArkApi
 
 		const uint64 steam_id = ArkApi::IApiUtils::GetSteamIdFromController(player_controller);
 
-		if (steam_id != 0)
+		std::lock_guard<std::mutex> lock(steam_id_mutex_);
+
+		// a reconnected player may already be mapped to a newer controller
+		const auto iter = steam_id != 0 ? steam_id_map_.find(steam_id) : steam_id_map_.end();
+		if (iter != steam_id_map_.end() && iter->second == player_controller)
 		{
-			steam_id_map_.erase(steam_id);
+			steam_id_map_.erase(iter);
+			return;
 		}
+
+		std::erase_if(steam_id_map_, [player_controller](const auto& entry)
+		{
+			return entry.second == player_controller;
+		});
 	}
 
 	AShooterPlayerController* ApiUtils::FindPlayerFromSteamId_Internal(uint64 steam_id) const
@@ -78,6 +90,8 @@ namespace ArkApi
 
 		if (steam_id == 0)
 			return found_player;
+
+		std::lock_guard<std::mutex> lock(steam_id_mutex_);
 
 		auto iter = steam_id_map_.find(steam_id);
 
@@ -93,6 +107,19 @@ namespace ArkApi
 	UShooterCheatManager* ApiUtils::GetCheatManager() const
 	{
 		return cheatmanager_;
+	}
+
+	void ApiUtils::RunHiddenCommand_Internal(AShooterPlayerController* player_controller, FString* command)
+	{
+		struct HideGuard
+		{
+			bool previous{HideCommand};
+			HideGuard() { HideCommand = true; }
+			~HideGuard() { HideCommand = previous; }
+		} guard;
+
+		FString result;
+		player_controller->ConsoleCommand(&result, command, false);
 	}
 
 	// Free function

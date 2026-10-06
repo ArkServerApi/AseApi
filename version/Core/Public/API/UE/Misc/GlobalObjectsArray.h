@@ -23,7 +23,11 @@ public:
 	{
 		auto ChunkIndex = Index / ElementsPerChunk;
 		auto WithinChunkIndex = Index % ElementsPerChunk;
+		if (Index < 0 || ChunkIndex >= NumChunks)
+			return nullptr;
 		auto Chunk = Objects[ChunkIndex];
+		if (!Chunk)
+			return nullptr;
 		return Chunk + WithinChunkIndex;
 	}
 

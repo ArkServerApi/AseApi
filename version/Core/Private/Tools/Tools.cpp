@@ -7,12 +7,28 @@ namespace ArkApi::Tools
 {
 	std::string GetCurrentDir()
 	{
-		char buffer[MAX_PATH];
-		GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+		std::string buffer(MAX_PATH, '\0');
 
-		const std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+		for (;;)
+		{
+			const DWORD length = GetModuleFileNameA(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+			if (length == 0)
+			{
+				return "";
+			}
 
-		return std::string(buffer).substr(0, pos);
+			if (length < buffer.size())
+			{
+				buffer.resize(length);
+				break;
+			}
+
+			buffer.resize(buffer.size() * 2);
+		}
+
+		const std::string::size_type pos = buffer.find_last_of("\\/");
+
+		return buffer.substr(0, pos);
 	}
 
 	[[deprecated]] std::wstring ConvertToWideStr(const std::string& text)
@@ -24,8 +40,10 @@ namespace ArkApi::Tools
 		{
 			wstr.resize(size);
 
-			size_t converted_chars;
+			size_t converted_chars = 0;
 			mbstowcs_s(&converted_chars, wstr.data(), size + 1, text.c_str(), _TRUNCATE);
+
+			wstr.resize(converted_chars > 0 ? converted_chars - 1 : 0);
 		}
 
 		return wstr;
@@ -45,7 +63,7 @@ namespace ArkApi::Tools
 	{
 		std::string converted_string;
 
-		if (wstr.empty())
+		if (wstr.empty() || wstr.size() > INT_MAX)
 			return converted_string;
 
 		const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()), nullptr, 0,
@@ -65,7 +83,7 @@ namespace ArkApi::Tools
 	{
 		std::wstring converted_string;
 
-		if (str.empty())
+		if (str.empty() || str.size() > INT_MAX)
 		{
 			return converted_string;
 		}

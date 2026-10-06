@@ -3,7 +3,9 @@
 #include <IHooks.h>
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
+#include <vector>
 
 namespace API
 {
@@ -23,21 +25,48 @@ namespace API
 
 		bool DisableHook(const std::string& func_name, LPVOID detour) override;
 
-	private:
-		struct Hook
-		{
-			Hook(LPVOID target, LPVOID detour, LPVOID* original)
-				: target(target),
-				  detour(detour),
-				  original(original)
-			{
-			}
+		/**
+		 * \brief Removes every hook whose detour lives in the given module
+		 */
+		void RemoveModuleHooks(HMODULE module);
 
-			LPVOID target;
-			LPVOID detour;
-			LPVOID* original;
+	private:
+		// jmp qword ptr [rip+2]; int3; int3; dq destination
+		struct Thunk
+		{
+			BYTE code[8];
+			LPVOID destination;
 		};
 
-		std::unordered_map<std::string, std::vector<std::shared_ptr<Hook>>> all_hooks_;
+		struct Hook
+		{
+			std::string name;
+			LPVOID detour;
+			LPVOID* original;
+			HMODULE owner;
+			Thunk* thunk;
+		};
+
+		// hooks run from back to front, the front one calls the engine trampoline
+		struct Target
+		{
+			LPVOID address{nullptr};
+			LPVOID trampoline{nullptr};
+			Thunk* entry{nullptr};
+			std::vector<std::shared_ptr<Hook>> hooks;
+		};
+
+		Thunk* AllocateThunk(LPVOID destination);
+		static void SetThunkDestination(Thunk* thunk, LPVOID destination);
+		static void Relink(Target& target);
+		bool AttachTarget(Target& target, const std::shared_ptr<Hook>& hook);
+		static bool IsMissingSymbol(LPVOID address);
+
+		std::unordered_map<LPVOID, Target> targets_;
+
+		BYTE* thunk_page_{nullptr};
+		size_t thunk_page_used_{0};
+
+		std::mutex mutex_;
 	};
 } // namespace API

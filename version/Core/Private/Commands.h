@@ -3,7 +3,11 @@
 #include <ICommands.h>
 
 #include <algorithm>
+#include <atomic>
 #include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -13,7 +17,7 @@ namespace ArkApi
 	{
 	public:
 		Commands() = default;
-		
+
 		Commands(const Commands&) = delete;
 		Commands(Commands&&) = delete;
 		Commands& operator=(const Commands&) = delete;
@@ -53,18 +57,110 @@ namespace ArkApi
 		bool CheckOnChatMessageCallbacks(AShooterPlayerController* player_controller, FString* message,
 		                                 EChatSendMode::Type mode, bool spam_check, bool command_executed);
 
+		/**
+		 * \brief Removes every command and callback registered by the given module
+		 */
+		void RemoveModuleCommands(HMODULE module);
+
+		/**
+		 * \brief True while any command or callback is being dispatched
+		 */
+		bool IsDispatching() const;
+
 	private:
 		template <typename T>
 		struct Command
 		{
-			Command(FString command, std::function<T> callback)
+			Command(FString command, std::function<T> callback, HMODULE owner, std::string owner_name)
 				: command(std::move(command)),
-				  callback(std::move(callback))
+				  callback(std::move(callback)),
+				  owner(owner),
+				  owner_name(std::move(owner_name))
 			{
 			}
 
 			FString command;
 			std::function<T> callback;
+			HMODULE owner;
+			std::string owner_name;
+			std::atomic<bool> removed{false};
+			std::atomic<int> running{0};
+		};
+
+		// copy on write, dispatch iterates a snapshot so callbacks may add or remove entries
+		template <typename T>
+		class Registry
+		{
+		public:
+			using Entry = Command<T>;
+			using List = std::vector<std::shared_ptr<Entry>>;
+
+			std::shared_ptr<const List> Snapshot() const
+			{
+				std::lock_guard<std::mutex> lock(mutex_);
+				return list_;
+			}
+
+			void Add(std::shared_ptr<Entry> entry)
+			{
+				std::lock_guard<std::mutex> lock(mutex_);
+
+				auto list = std::make_shared<List>(*list_);
+				list->push_back(std::move(entry));
+				list_ = std::move(list);
+			}
+
+			template <typename Pred>
+			std::vector<std::shared_ptr<Entry>> RemoveIf(Pred pred)
+			{
+				std::vector<std::shared_ptr<Entry>> removed = RemoveIfLocked(pred);
+
+				// release the callback now unless it is running
+				for (const auto& entry : removed)
+				{
+					if (entry->running == 0)
+					{
+						entry->callback = nullptr;
+					}
+				}
+
+				return removed;
+			}
+
+		private:
+			template <typename Pred>
+			std::vector<std::shared_ptr<Entry>> RemoveIfLocked(Pred pred)
+			{
+				std::vector<std::shared_ptr<Entry>> removed;
+
+				std::lock_guard<std::mutex> lock(mutex_);
+
+				auto list = std::make_shared<List>();
+				list->reserve(list_->size());
+
+				for (const auto& entry : *list_)
+				{
+					if (pred(entry))
+					{
+						entry->removed = true;
+						removed.push_back(entry);
+					}
+					else
+					{
+						list->push_back(entry);
+					}
+				}
+
+				if (!removed.empty())
+				{
+					list_ = std::move(list);
+				}
+
+				return removed;
+			}
+
+			mutable std::mutex mutex_;
+			std::shared_ptr<const List> list_{std::make_shared<List>()};
 		};
 
 		using ChatCommand = Command<void(AShooterPlayerController*, FString*, EChatSendMode::Type)>;
@@ -77,56 +173,46 @@ namespace ArkApi
 			(AShooterPlayerController*, FString*, EChatSendMode::Type, bool, bool)>;
 
 		template <typename T>
-		bool RemoveCommand(const FString& command, std::vector<std::shared_ptr<T>>& commands)
-		{
-			auto iter = std::find_if(commands.begin(), commands.end(),
-			                         [&command](const std::shared_ptr<T>& data) -> bool
-			                         {
-				                         return data->command == command;
-			                         });
+		void AddCommand(const FString& command, const std::function<T>& callback, Registry<T>& registry,
+		                void* return_address, bool unique_name);
 
-			if (iter != commands.end())
-			{
-				commands.erase(std::remove(commands.begin(), commands.end(), *iter), commands.end());
+		template <typename T>
+		bool RemoveCommand(const FString& command, Registry<T>& registry, void* return_address, bool protect_api);
 
-				return true;
-			}
+		template <typename T>
+		void RemoveModuleEntries(HMODULE module, Registry<T>& registry, const char* kind);
 
-			return false;
-		}
+		template <typename T, typename Fn>
+		static bool Invoke(Command<T>& entry, const char* kind, Fn&& call);
 
 		template <typename T, typename... Args>
-		bool CheckCommands(const FString& message, const std::vector<std::shared_ptr<T>>& commands, Args&&... args)
+		bool CheckCommands(const FString& message, const Registry<T>& registry, const char* kind, Args&&... args);
+
+		class DispatchScope
 		{
-			TArray<FString> parsed;
-			message.ParseIntoArray(parsed, L" ", true);
+		public:
+			explicit DispatchScope(std::atomic<int>& depth) : depth_(depth) { ++depth_; }
+			~DispatchScope() { --depth_; }
 
-			if (!parsed.IsValidIndex(0))
-			{
-				return false;
-			}
+			DispatchScope(const DispatchScope&) = delete;
+			DispatchScope& operator=(const DispatchScope&) = delete;
 
-			const FString command_text = parsed[0];
+		private:
+			std::atomic<int>& depth_;
+		};
 
-			for (const auto& command : commands)
-			{
-				if (command_text.Compare(command->command, ESearchCase::IgnoreCase) == 0)
-				{
-					command->callback(std::forward<Args>(args)...);
+		Registry<void(AShooterPlayerController*, FString*, EChatSendMode::Type)> chat_commands_;
+		Registry<void(APlayerController*, FString*, bool)> console_commands_;
+		Registry<void(RCONClientConnection*, RCONPacket*, UWorld*)> rcon_commands_;
 
-					return true;
-				}
-			}
+		Registry<void(float)> on_tick_callbacks_;
+		Registry<void()> on_timer_callbacks_;
+		Registry<bool(AShooterPlayerController*, FString*, EChatSendMode::Type, bool, bool)> on_chat_message_callbacks_;
 
-			return false;
-		}
+		std::atomic<int> dispatch_depth_{0};
 
-		std::vector<std::shared_ptr<ChatCommand>> chat_commands_;
-		std::vector<std::shared_ptr<ConsoleCommand>> console_commands_;
-		std::vector<std::shared_ptr<RconCommand>> rcon_commands_;
-
-		std::vector<std::shared_ptr<OnTickCallback>> on_tick_callbacks_;
-		std::vector<std::shared_ptr<OnTimerCallback>> on_timer_callbacks_;
-		std::vector<std::shared_ptr<OnChatMessageCallback>> on_chat_message_callbacks_;
+		// purged at unload, their late Remove* calls (DllMain) must not hit other plugins
+		std::mutex purged_mutex_;
+		std::unordered_set<HMODULE> purged_modules_;
 	};
 } // namespace ArkApi

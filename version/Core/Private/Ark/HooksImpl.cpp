@@ -68,23 +68,30 @@ namespace ArkApi
 		Log::GetLog()->info("UGameEngine::Init was called");
 		Log::GetLog()->info("Loading plugins..\n");
 
-		API::PluginManager::Get().LoadAllPlugins();
+		try
+		{
+			API::PluginManager::Get().LoadAllPlugins();
+		}
+		catch (const std::exception& error)
+		{
+			Log::GetLog()->error("Failed to load plugins - {}", error.what());
+		}
 
-		dynamic_cast<API::IBaseApi&>(*API::game_api).RegisterCommands();
+		API::game_api->RegisterCommands();
 	}
 
 	void Hook_UWorld_InitWorld(UWorld* world, DWORD64 ivs)
 	{
 		Log::GetLog()->info("UWorld::InitWorld was called");
 
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetWorld(world);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetWorld(world);
 
 		UWorld_InitWorld_original(world, ivs);
 	}
 
 	void Hook_UWorld_Tick(DWORD64 world, DWORD64 tick_type, float delta_seconds)
 	{
-		Commands* command = dynamic_cast<Commands*>(API::game_api->GetCommands().get());
+		static Commands* command = static_cast<Commands*>(API::game_api->GetCommands().get());
 		if (command)
 		{
 			command->CheckOnTickCallbacks(delta_seconds);
@@ -96,7 +103,7 @@ namespace ArkApi
 	void Hook_AShooterGameMode_InitGame(AShooterGameMode* a_shooter_game_mode, FString* map_name, FString* options,
 		FString* error_message)
 	{
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetShooterGameMode(a_shooter_game_mode);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetShooterGameMode(a_shooter_game_mode);
 
 		AShooterGameMode_InitGame_original(a_shooter_game_mode, map_name, options, error_message);
 	}
@@ -115,10 +122,10 @@ namespace ArkApi
 
 		player_controller->LastChatMessageTimeField() = now_time;
 
-		const auto command_executed = dynamic_cast<ArkApi::Commands&>(*API::game_api->GetCommands()).
+		const auto command_executed = static_cast<ArkApi::Commands&>(*API::game_api->GetCommands()).
 			CheckChatCommands(player_controller, message, mode);
 
-		const auto prevent_default = dynamic_cast<ArkApi::Commands&>(*API::game_api->GetCommands()).
+		const auto prevent_default = static_cast<ArkApi::Commands&>(*API::game_api->GetCommands()).
 			CheckOnChatMessageCallbacks(player_controller, message, mode, spam_check, command_executed);
 
 		if (command_executed || prevent_default)
@@ -132,7 +139,7 @@ namespace ArkApi
 	FString* Hook_APlayerController_ConsoleCommand(APlayerController* a_player_controller, FString* result,
 		FString* cmd, bool write_to_log)
 	{
-		dynamic_cast<Commands&>(*API::game_api->GetCommands()).CheckConsoleCommands(
+		static_cast<Commands&>(*API::game_api->GetCommands()).CheckConsoleCommands(
 			a_player_controller, cmd, write_to_log);
 
 		return APlayerController_ConsoleCommand_original(a_player_controller, result, cmd, write_to_log);
@@ -151,7 +158,7 @@ namespace ArkApi
 	{
 		if (_this->IsAuthenticatedField())
 		{
-			dynamic_cast<Commands&>(*API::game_api->GetCommands()).CheckRconCommands(_this, packet, in_world);
+			static_cast<Commands&>(*API::game_api->GetCommands()).CheckRconCommands(_this, packet, in_world);
 		}
 
 		RCONClientConnection_ProcessRCONPacket_original(_this, packet, in_world);
@@ -159,13 +166,21 @@ namespace ArkApi
 
 	void Hook_AGameState_DefaultTimer(AGameState* _this)
 	{
-		Commands* command = dynamic_cast<Commands*>(API::game_api->GetCommands().get());
+		static Commands* command = static_cast<Commands*>(API::game_api->GetCommands().get());
 		if (command)
 		{
 			command->CheckOnTimerCallbacks();
 		}
 
 		API::PluginManager::DetectPluginChangesTimerCallback(); // We call this here to avoid UnknownModule crashes
+
+		if (GetLogFlushLevel() > spdlog::level::info)
+		{
+			for (const auto& sink : GetLogSinks())
+			{
+				sink->flush();
+			}
+		}
 
 		AGameState_DefaultTimer_original(_this);
 	}
@@ -174,12 +189,12 @@ namespace ArkApi
 	{
 		AShooterGameMode_BeginPlay_original(_AShooterGameMode);
 
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetStatus(ServerStatus::Ready);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetStatus(ServerStatus::Ready);
 	}
 
 	bool Hook_URCONServer_Init(URCONServer* _this, FString Password, int InPort, UShooterCheatManager* SCheatManager)
 	{
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetCheatManager(SCheatManager);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetCheatManager(SCheatManager);
 
 		return URCONServer_Init_original(_this, Password, InPort, SCheatManager);
 	}
@@ -191,13 +206,13 @@ namespace ArkApi
 		if (_this)
 		{
 			AShooterPlayerController* ASPC = static_cast<AShooterPlayerController*>(_this);
-			dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetPlayerController(ASPC);
+			static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetPlayerController(ASPC);
 		}
 	}
 
 	void  Hook_AShooterPlayerController_Possess(AShooterPlayerController* _this, APawn* inPawn)
 	{
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetPlayerController(_this);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).SetPlayerController(_this);
 
 		AShooterPlayerController_Possess_original(_this, inPawn);
 	}
@@ -205,7 +220,7 @@ namespace ArkApi
 	void  Hook_AShooterGameMode_Logout(AShooterGameMode* _this, AController* Exiting)
 	{
 		AShooterPlayerController* Exiting_SPC = static_cast<AShooterPlayerController*>(Exiting);
-		dynamic_cast<ApiUtils&>(*API::game_api->GetApiUtils()).RemovePlayerController(Exiting_SPC);
+		static_cast<ApiUtils&>(*API::game_api->GetApiUtils()).RemovePlayerController(Exiting_SPC);
 
 		AShooterGameMode_Logout_original(_this, Exiting);
 	}

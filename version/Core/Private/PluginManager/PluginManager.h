@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <windows.h>
@@ -33,6 +36,11 @@ namespace API
 		std::vector<std::string> dependencies;
 	};
 
+	// implemented by Timer.cpp and Requests.cpp
+	void CancelModuleTimers(HMODULE module);
+	bool HasModuleTimerThreads(HMODULE module);
+	void CancelModuleRequests(HMODULE module);
+
 	class PluginManager
 	{
 	public:
@@ -62,6 +70,7 @@ namespace API
 
 		/**
 		 * \brief Unload plugin by it's name. Plugin must free all used resources.
+		 * The library itself is freed at the start of the next frame.
 		 * \param plugin_name File name of the plugin
 		 */
 		void UnloadPlugin(const std::string& plugin_name) noexcept(false);
@@ -82,19 +91,53 @@ namespace API
 		* \brief Checks for auto plugin reloads
 		*/
 		static void DetectPluginChangesTimerCallback();
+
+		/**
+		* \brief Frees unloaded plugins and runs queued reloads, called when no plugin code is on the stack
+		*/
+		void ProcessPendingPlugins();
+
 	private:
 		PluginManager() = default;
 		~PluginManager() = default;
 
+		struct PendingFree
+		{
+			HMODULE module;
+			std::string name;
+			int attempts{0};
+		};
+
+		struct PendingReload
+		{
+			std::string name;
+			bool unloaded{false};
+		};
+
+		struct ReloadFileState
+		{
+			std::uintmax_t size;
+			std::filesystem::file_time_type write_time;
+		};
+
 		static nlohmann::json ReadPluginInfo(const std::string& plugin_name);
 		static nlohmann::json ReadPluginPDBConfig(const std::string& plugin_name);
-		static nlohmann::json ReadSettingsConfig();
+		static std::string GetPluginsDir();
+		static bool IsValidPluginName(const std::string& plugin_name);
 
 		void CheckPluginsDependencies();
 
 		void DetectPluginChanges();
 
+		static void RemovePluginRegistrations(HMODULE module);
+		static bool TryFreeLibrary(const PendingFree& pending);
+		bool IsPendingFree(const std::string& plugin_name) const;
+		void RunReload(const std::string& plugin_name);
+
 		std::vector<std::shared_ptr<Plugin>> loaded_plugins_;
+		std::vector<PendingFree> pending_free_;
+		std::vector<PendingReload> pending_reloads_;
+		std::unordered_map<std::string, ReloadFileState> reload_candidates_;
 
 		// Plugins auto reloading
 		bool enable_plugin_reload_{false};

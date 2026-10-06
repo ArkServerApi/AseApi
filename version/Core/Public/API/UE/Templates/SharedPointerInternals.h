@@ -70,16 +70,11 @@ namespace SharedPointerInternals
 	struct FNullTag {};
 
 
-	class FReferenceControllerBase
+	/**
+	 * Reference counter, same layout as the engine's. Always allocated with FMemory.
+	 */
+	struct FReferenceControllerState
 	{
-	public:
-		/** Constructor */
-		FORCEINLINE explicit FReferenceControllerBase()
-			: SharedReferenceCount(1)
-			, WeakReferenceCount(1)
-		{
-		}
-
 		// NOTE: The primary reason these reference counters are 32-bit values (and not 16-bit to save
 		//       memory), is that atomic operations require at least 32-bit objects.
 
@@ -91,50 +86,66 @@ namespace SharedPointerInternals
 		   weak reference too. */
 		int32 WeakReferenceCount;
 
+		/** The object associated with this reference counter.  */
+		void* Object;
+
 		/** Destroys the object associated with this reference counter.  */
-		virtual void DestroyObject() = 0;
-
-		virtual ~FReferenceControllerBase()
-		{
-		}
-
-	private:
-		FReferenceControllerBase( FReferenceControllerBase const& );
-		FReferenceControllerBase& operator=( FReferenceControllerBase const& );
+		void (*DestroyObject)(void*);
 	};
 
-	template <typename ObjectType, typename DeleterType>
-	class TReferenceControllerWithDeleter : private DeleterType, public FReferenceControllerBase
+	typedef FReferenceControllerState FReferenceControllerBase;
+
+	FORCEINLINE void InitReferenceController(FReferenceControllerState* State, void* InObject, void (*InDestroyObject)(void*))
 	{
-	public:
-		explicit TReferenceControllerWithDeleter(ObjectType* InObject, DeleterType&& Deleter)
-			: DeleterType(MoveTemp(Deleter))
+		State->SharedReferenceCount = 1;
+		State->WeakReferenceCount = 1;
+		State->Object = InObject;
+		State->DestroyObject = InDestroyObject;
+	}
+
+	/** Deletes an object via the standard delete operator */
+	template <typename ObjectType>
+	void DeleteObject(void* Object)
+	{
+		delete (ObjectType*)Object;
+	}
+
+	/** Counter block followed by a custom deleter.  State must stay the first member. */
+	template <typename ObjectType, typename DeleterType>
+	struct TReferenceControllerWithDeleter
+	{
+		explicit TReferenceControllerWithDeleter(ObjectType* InObject, DeleterType&& InDeleter)
+			: Deleter(MoveTemp(InDeleter))
 			, Object(InObject)
 		{
+			InitReferenceController(&State, this, &DestroyObject);
 		}
 
-		virtual void DestroyObject() override
+		static void DestroyObject(void* InController)
 		{
-			(*static_cast<DeleterType*>(this))(Object);
+			auto* Controller = static_cast<TReferenceControllerWithDeleter*>(InController);
+			Controller->Deleter(Controller->Object);
+			Controller->Deleter.~DeleterType();
 		}
 
 		// Non-copyable
 		TReferenceControllerWithDeleter(const TReferenceControllerWithDeleter&) = delete;
 		TReferenceControllerWithDeleter& operator=(const TReferenceControllerWithDeleter&) = delete;
 
-	private:
-		/** The object associated with this reference counter.  */
+		FReferenceControllerState State;
+		DeleterType Deleter;
 		ObjectType* Object;
 	};
 
+	/** Counter block with the object stored right after it (MakeShared).  State must stay the first member. */
 	template <typename ObjectType>
-	class TIntrusiveReferenceController : public FReferenceControllerBase
+	struct TIntrusiveReferenceController
 	{
-	public:
 		template <typename... ArgTypes>
 		explicit TIntrusiveReferenceController(ArgTypes&&... Args)
 		{
 			new ((void*)&ObjectStorage) ObjectType(Forward<ArgTypes>(Args)...);
+			InitReferenceController(&State, &ObjectStorage, &DestroyObject);
 		}
 
 		ObjectType* GetObjectPtr() const
@@ -142,50 +153,46 @@ namespace SharedPointerInternals
 			return (ObjectType*)&ObjectStorage;
 		}
 
-		virtual void DestroyObject() override
+		static void DestroyObject(void* Object)
 		{
-			DestructItem((ObjectType*)&ObjectStorage);
+			DestructItem((ObjectType*)Object);
 		}
 
 		// Non-copyable
 		TIntrusiveReferenceController(const TIntrusiveReferenceController&) = delete;
 		TIntrusiveReferenceController& operator=(const TIntrusiveReferenceController&) = delete;
 
-	private:
+		FReferenceControllerState State;
+
 		/** The object associated with this reference counter.  */
 		mutable TTypeCompatibleBytes<ObjectType> ObjectStorage;
 	};
 
 
-	/** Deletes an object via the standard delete operator */
-	template <typename Type>
-	struct DefaultDeleter
-	{
-		FORCEINLINE void operator()(Type* Object) const
-		{
-			delete Object;
-		}
-	};
-
 	/** Creates a reference controller which just calls delete */
 	template <typename ObjectType>
-	inline FReferenceControllerBase* NewDefaultReferenceController(ObjectType* Object)
+	inline FReferenceControllerState* NewDefaultReferenceController(ObjectType* Object)
 	{
-		return new TReferenceControllerWithDeleter<ObjectType, DefaultDeleter<ObjectType>>(Object, DefaultDeleter<ObjectType>());
+		auto* State = static_cast<FReferenceControllerState*>(FMemory::Malloc(sizeof(FReferenceControllerState), alignof(FReferenceControllerState)));
+		InitReferenceController(State, (void*)Object, &DeleteObject<ObjectType>);
+		return State;
 	}
 
 	/** Creates a custom reference controller with a specified deleter */
 	template <typename ObjectType, typename DeleterType>
-	inline FReferenceControllerBase* NewCustomReferenceController(ObjectType* Object, DeleterType&& Deleter)
+	inline FReferenceControllerState* NewCustomReferenceController(ObjectType* Object, DeleterType&& Deleter)
 	{
-		return new TReferenceControllerWithDeleter<ObjectType, typename TRemoveReference<DeleterType>::Type>(Object, Forward<DeleterType>(Deleter));
+		typedef TReferenceControllerWithDeleter<ObjectType, typename TRemoveReference<DeleterType>::Type> ControllerType;
+		void* Memory = FMemory::Malloc(sizeof(ControllerType), alignof(ControllerType));
+		return &(new (Memory) ControllerType(Object, typename TRemoveReference<DeleterType>::Type(Forward<DeleterType>(Deleter))))->State;
 	}
 
 	/** Creates an intrusive reference controller */
 	template <typename ObjectType, typename... ArgTypes>
 	inline TIntrusiveReferenceController<ObjectType>* NewIntrusiveReferenceController(ArgTypes&&... Args)
 	{
-		return new TIntrusiveReferenceController<ObjectType>(Forward<ArgTypes>(Args)...);
+		void* Memory = FMemory::Malloc(sizeof(TIntrusiveReferenceController<ObjectType>), alignof(TIntrusiveReferenceController<ObjectType>));
+		return new (Memory) TIntrusiveReferenceController<ObjectType>(Forward<ArgTypes>(Args)...);
 	}
 
 
@@ -281,7 +288,7 @@ namespace SharedPointerInternals
 			if( FPlatformAtomics::InterlockedDecrement( &ReferenceController->SharedReferenceCount ) == 0 )
 			{
 				// Last shared reference was released!  Destroy the referenced object.
-				ReferenceController->DestroyObject();
+				ReferenceController->DestroyObject(ReferenceController->Object);
 
 				// No more shared referencers, so decrement the weak reference count by one.  When the weak
 				// reference count reaches zero, this object will be deleted.
@@ -304,7 +311,7 @@ namespace SharedPointerInternals
 			if( FPlatformAtomics::InterlockedDecrement( &ReferenceController->WeakReferenceCount ) == 0 )
 			{
 				// No more references to this reference count.  Destroy it!
-				delete ReferenceController;
+				FMemory::Free(ReferenceController);
 			}
 		}
 	};
@@ -350,7 +357,7 @@ namespace SharedPointerInternals
 			if( --ReferenceController->SharedReferenceCount == 0 )
 			{
 				// Last shared reference was released!  Destroy the referenced object.
-				ReferenceController->DestroyObject();
+				ReferenceController->DestroyObject(ReferenceController->Object);
 
 				// No more shared referencers, so decrement the weak reference count by one.  When the weak
 				// reference count reaches zero, this object will be deleted.
@@ -372,7 +379,7 @@ namespace SharedPointerInternals
 			if( --ReferenceController->WeakReferenceCount == 0 )
 			{
 				// No more references to this reference count.  Destroy it!
-				delete ReferenceController;
+				FMemory::Free(ReferenceController);
 			}
 		}
 	};

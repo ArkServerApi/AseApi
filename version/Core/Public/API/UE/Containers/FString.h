@@ -1635,9 +1635,17 @@ public:
 		if constexpr (!TIsCharType<T>::Value)
 			static_assert(TIsCharType<T>::Value, "format must be a char or wchar_t");
 
-		auto formatted_msg = fmt::format(format, std::forward<Args>(args)...);
+		try
+		{
+			auto formatted_msg = fmt::format(format, std::forward<Args>(args)...);
 
-		return FString(formatted_msg.c_str());
+			return FString(formatted_msg.c_str());
+		}
+		catch (...)
+		{
+			// bad format string, keep the raw text
+			return FString(format);
+		}
 	}
 
 	
@@ -1645,8 +1653,7 @@ public:
 
 FORCEINLINE uint32 GetTypeHash(const FString& Thing)
 {
-	uint32 Hash = FCrc::MemCrc32(&Thing, sizeof(FString));
-	return Hash;
+	return FCrc::Strihash_DEPRECATED(*Thing);
 }
 
 template<>

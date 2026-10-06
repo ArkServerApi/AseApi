@@ -1,31 +1,22 @@
 #include <Logger/Logger.h>
 
-#include <fstream>
-
 #include <Tools.h>
 #include <json.hpp>
 
+#include "Helpers.h"
+
 std::string GetLogName()
 {
-	static std::string log_name("-1");
-	if (log_name == "-1")
-	{
-		const std::string config_path = ArkApi::Tools::GetCurrentDir() + "/config.json";
-		std::ifstream file{config_path};
-		if (!file.is_open())
-		{
-			log_name = "";
-			return "";
-		}
-
-		nlohmann::json config;
-		file >> config;
-		file.close();
-
-		log_name = config["settings"].value("StaticLogPath", "");
-	}
-
+	static const std::string log_name = API::GetSettingString(API::ReadSettings(), "StaticLogPath", "");
 	return log_name;
+}
+
+spdlog::level::level_enum GetLogFlushLevel()
+{
+	static const spdlog::level::level_enum level = API::GetSettingBool(API::ReadSettings(), "FlushLogsImmediately", true)
+		                                               ? spdlog::level::info
+		                                               : spdlog::level::warn;
+	return level;
 }
 
 std::vector<spdlog::sink_ptr>& GetLogSinks()

@@ -1,3 +1,3 @@
 #pragma once
 
-inline bool HideCommand = false;
+inline thread_local bool HideCommand = false;

@@ -1,28 +1,30 @@
 #include <API/Base.h>
 
+#include <intrin.h>
+
 #include "Offsets.h"
 
-DWORD64 GetAddress(const void* base, const std::string& name)
+__declspec(noinline) DWORD64 GetAddress(const void* base, const std::string& name)
 {
-	return API::Offsets::Get().GetAddress(base, name);
+	return API::Offsets::Get().GetAddress(base, name, _ReturnAddress());
 }
 
-LPVOID GetAddress(const std::string& name)
+__declspec(noinline) LPVOID GetAddress(const std::string& name)
 {
-	return API::Offsets::Get().GetAddress(name);
+	return API::Offsets::Get().GetAddress(name, _ReturnAddress());
 }
 
-LPVOID GetDataAddress(const std::string& name)
+__declspec(noinline) LPVOID GetDataAddress(const std::string& name)
 {
-	return API::Offsets::Get().GetDataAddress(name);
+	return API::Offsets::Get().GetDataAddress(name, _ReturnAddress());
 }
 
-BitField GetBitField(const void* base, const std::string& name)
+__declspec(noinline) BitField GetBitField(const void* base, const std::string& name)
 {
-	return API::Offsets::Get().GetBitField(base, name);
+	return API::Offsets::Get().GetBitField(base, name, _ReturnAddress());
 }
 
-BitField GetBitField(LPVOID base, const std::string& name)
+__declspec(noinline) BitField GetBitField(LPVOID base, const std::string& name)
 {
-	return API::Offsets::Get().GetBitField(base, name);
+	return API::Offsets::Get().GetBitField(base, name, _ReturnAddress());
 }

@@ -817,7 +817,7 @@ private:
 			}
 
 			RemainingBitMask = ArrayData[this->DWORDIndex];
-			UnvisitedBitMask = ~0;
+			UnvisitedBitMask = ~0u;
 		}
 
 		// This operation has the effect of unsetting the lowest set bit of BitMask
@@ -922,7 +922,7 @@ private:
 			if(this->DWORDIndex <= LastDWORDIndex)
 			{
 				RemainingBitMask = ArrayDataA[this->DWORDIndex] & ArrayDataB[this->DWORDIndex];
-				UnvisitedBitMask = ~0;
+				UnvisitedBitMask = ~0u;
 			}
 			else
 			{

@@ -4,6 +4,7 @@
 #include "Logger/spdlog/spdlog.h"
 
 ARK_API std::vector<spdlog::sink_ptr>& APIENTRY GetLogSinks();
+ARK_API spdlog::level::level_enum APIENTRY GetLogFlushLevel();
 
 class Log
 {
@@ -31,7 +32,7 @@ public:
 		logger_ = std::make_shared<spdlog::logger>(plugin_name, begin(sinks), end(sinks));
 
 		logger_->set_pattern("%D %R [%n][%l] %v");
-		logger_->flush_on(spdlog::level::info);
+		logger_->flush_on(GetLogFlushLevel());
 	}
 
 private:

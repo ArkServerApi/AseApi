@@ -2,6 +2,13 @@
   "settings":{  
     "AutomaticPluginReloading":true,
     "AutomaticPluginReloadSeconds":5,
-    "SaveWorldBeforePluginReload":true
+    "SaveWorldBeforePluginReload":true,
+    "VerifyHttpsCertificates":false,
+    "MaxRequestThreads":0,
+    "FlushLogsImmediately":true,
+    "LegacyHttpStatusResult":true,
+    "UnloadPluginOnInitFailure":false,
+    "UsePdbCache":false,
+    "HttpKeepAlive":false
   }
 }
